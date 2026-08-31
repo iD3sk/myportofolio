@@ -122,3 +122,5 @@ sftp-config.json
 .DS_Store
 
 AGENTS.md
+
+staticfiles/*
