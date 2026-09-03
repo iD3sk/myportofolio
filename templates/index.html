@@ -7,28 +7,15 @@
     <title>Fiqhi - Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />
   </head>
   <body class="bg-paper font-body leading-[1.6] text-ink">
     <header class="border-b border-line">
-      <div
-        class="mx-auto my-0 flex max-w-240 items-center justify-between px-6 py-5"
-      >
-        <a
-          href="#profile"
-          class="text-[1.3rem] leading-[1.6] font-bold text-ink no-underline"
-          >Fiqhi</a
-        >
+      <div class="mx-auto my-0 flex max-w-240 items-center justify-between px-6 py-5">
+        <a href="#profile" class="text-[1.3rem] leading-[1.6] font-bold text-ink no-underline">Fiqhi</a>
         <nav class="flex gap-8">
-          <a
-            href="#profile"
-            class="text-[0.95rem] leading-[1.6] text-ink no-underline"
-            >Profile</a
-          >
+          <a href="#profile" class="text-[0.95rem] leading-[1.6] text-ink no-underline">Profile</a>
         </nav>
       </div>
     </header>
@@ -36,29 +23,17 @@
     <main>
       <section class="px-0 pt-18 pb-20" id="profile">
         <!-- hero -->
-        <div
-          class="mx-auto my-0 grid max-w-240 grid-cols-1 gap-x-12 gap-y-6 px-6 py-0 min-[601px]:grid-cols-[1.3fr_1fr]"
-        >
+        <div class="mx-auto my-0 grid max-w-240 grid-cols-1 gap-x-12 gap-y-6 px-6 py-0 min-[601px]:grid-cols-[1.3fr_1fr]">
           <!-- hero-identity -->
           <div class="min-[601px]:col-start-1 min-[601px]:row-start-1">
-            <p
-              class="hero-kicker mb-3 text-[0.85rem] font-bold tracking-[0.08em] text-accent-dark uppercase"
-            >
+            <p class="hero-kicker mb-3 text-[0.85rem] font-bold tracking-[0.08em] text-accent-dark uppercase">
               Computer Science &middot; Universitas Indonesia
             </p>
-            <h1
-              class="font-display text-[clamp(3rem,7vw,5rem)] leading-[0.95] font-bold"
-            >
-              Fiqhi Deski Ismail
-            </h1>
+            <h1 class="font-display text-[clamp(3rem,7vw,5rem)] leading-[0.95] font-bold">Fiqhi Deski Ismail</h1>
           </div>
           <!-- hero-photo -->
-          <div
-            class="relative max-w-55 self-center min-[601px]:col-start-2 min-[601px]:row-span-2 min-[601px]:row-start-1 min-[601px]:max-w-none"
-          >
-            <div
-              class="photo-block absolute top-5 left-5 z-0 h-full w-full rounded-default bg-accent"
-            ></div>
+          <div class="relative max-w-55 self-center min-[601px]:col-start-2 min-[601px]:row-span-2 min-[601px]:row-start-1 min-[601px]:max-w-none">
+            <div class="photo-block absolute top-5 left-5 z-0 h-full w-full rounded-default bg-accent"></div>
             <img
               class="avatar relative z-1 block aspect-square w-full rounded-default border-[3px] border-ink object-cover"
               src="/static/img/foto fiqhi.jpeg"
@@ -68,47 +43,30 @@
           <!-- hero-details -->
           <div class="min-[601px]:col-start-1 min-[601px]:row-start-2">
             <p class="bio mb-6 max-w-120 text-justify text-muted">
-              CS student at Universitas Indonesia for longer than planned, now a
-              familiar (and slightly dreaded) face among Fasilkom students as a
-              teaching assistant across several courses.
+              CS student at Universitas Indonesia for longer than planned, now a familiar (and slightly dreaded) face among Fasilkom students as a teaching
+              assistant across several courses.
             </p>
             <dl class="meta-list mb-6 flex gap-8">
               <div class="meta-row">
-                <dt
-                  class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase"
-                >
-                  NPM
-                </dt>
+                <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">NPM</dt>
                 <dd class="font-semibold">2506534245</dd>
               </div>
               <div class="meta-row">
-                <dt
-                  class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase"
-                >
-                  Program
-                </dt>
+                <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">Program</dt>
                 <dd class="font-semibold">S1 Ilmu Komputer</dd>
               </div>
             </dl>
             <div class="flex flex-wrap gap-2">
               <a href="https://github.com/iD3sk" class="social-link">GitHub</a>
-              <a
-                href="https://www.linkedin.com/in/fiqhideski/"
-                class="social-link"
-                >LinkedIn</a
-              >
-              <a href="mailto:fiqhi.deski@ui.ac.id" class="social-link"
-                >Email</a
-              >
+              <a href="https://www.linkedin.com/in/fiqhideski/" class="social-link">LinkedIn</a>
+              <a href="mailto:fiqhi.deski@ui.ac.id" class="social-link">Email</a>
             </div>
           </div>
         </div>
       </section>
     </main>
 
-    <footer
-      class="site-footer border-t border-line p-6 text-[0.85rem] text-muted"
-    >
+    <footer class="site-footer border-t border-line p-6 text-[0.85rem] text-muted">
       <div class="mx-auto max-w-[960px] px-6">
         <p>&copy; 2026 Fiqhi. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
       </div>
