@@ -1,0 +1,29 @@
+@import "tailwindcss" source("../../templates");
+
+@theme {
+    /* Colors */
+    --color-ink: #1c1917;
+    --color-paper: #faf6f0;
+    --color-accent: #d95d39;
+    --color-accent-dark: #a8442a;
+    --color-muted: #6b6459;
+    --color-line: #e3d9c9;
+
+    /* Radius */
+    --radius-default: 4px;
+
+    /* Typography */
+    --font-display: "Space Grotesk", sans-serif;
+    --font-body: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Future palette
+    --color-ink: #18222c;
+    --color-paper: #f7f3ea;
+    --color-primary: #3f73b5;
+    --color-secondary: #2f4a42;
+    --color-accent: #a72c43;
+    --color-accent-dark: #7f2133;
+    --color-muted: #718396;
+    --color-line: #d6dce1;
+*/
