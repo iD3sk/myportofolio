@@ -110,7 +110,9 @@ Pada minggu ini aku menambahkan section experience dalam beberapa card
 
 3. keterbatasan web statis saat ini adalah aku harus hard code semua data-data experience yang aku miliki. Jika, experience ini terus bertambah aku harus hardcode lagi secara manual. fitur dinamis yang mungkin bisa ditambahkan adalah mengutilisasi database(?), sehingga data pada html yang akan dirender hanya perlu fetch dari database yang ada
 
-### AI Disclosure
+## AI Disclosure
+
+### Overview
 
 Aku menggunakan AI-agentic jenis codex dengan model GPT-5.6 Sol. Aku menggunakan bantuan AI dalam hal:
 
@@ -119,6 +121,21 @@ Aku menggunakan AI-agentic jenis codex dengan model GPT-5.6 Sol. Aku menggunakan
 3. Saya juga meminta guide untuk layout responsive untuk mobile first, karena original templatenya menggunakan desktop first
 4. Membantu konfigurasi dan penggunaan Prettier untuk formatting kode.
 5. Memberikan penjelasan metode branching yang benar
+
+### Strategi Prompting
+
+Aku membagi permintaan bantuan AI berdasarkan kebutuhan yang spesifik, seperti penjelasan konsep, penyusunan design token, dan panduan migrasi CSS ke Tailwind. Untuk design token, fokus permintaanku adalah penyusunan nilai dasar styling yang dapat digunakan kembali agar tampilan website lebih konsisten.
+
+### Keterbatasan AI
+
+Dalam penyusunan design token, AI membantu menyediakan dasar styling, tetapi hasilnya belum sesuai dengan kebutuhan website portofolioku. Nilai warna, tipografi, dan jarak bisa terlihat masuk akal secara terpisah, tetapi belum menghasilkan tampilan yang nyaman dibaca ketika diterapkan bersama pada halaman. 
+
+Karena itu, hasil AI perlu dievaluasi dalam konteks penggunaannya. Warna perlu diperiksa terhadap latar tempat teks ditampilkan, sedangkan ukuran teks dan jarak perlu dinilai berdasarkan konten halaman. Mengubah satu token juga dapat memengaruhi banyak elemen sekaligus, sehingga perbaikannya perlu mempertimbangkan seluruh bagian yang menggunakan token tersebut. AI membantu menyusun fondasi desain, tetapi hasilnya tetap memerlukan pemeriksaan dan keputusan manual.
+
+### Perbaikan Manual
+
+Aku menyesuaikan design token yang dihasilkan AI secara manual dengan mengacu pada design token dari website lain yang pernah aku kerjakan. Proses ini merupakan adaptasi design token: aku menggunakan proyek sebelumnya sebagai referensi untuk memperbaiki hasil AI sesuai kebutuhan desain website ini. Dengan demikian, hasil AI menjadi titik awal yang aku revisi berdasarkan referensi dan pengalaman pengerjaan sebelumnya.
+
 
 Referensi log chat:
 
