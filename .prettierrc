@@ -3,5 +3,4 @@
   "tailwindStylesheet": "./static/css/app.css",
   "printWidth": 160,
   "singleAttributePerLine": false
-
 }
