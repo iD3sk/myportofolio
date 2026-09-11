@@ -1,0 +1,72 @@
+<header class="sticky top-0 right-0 left-0 z-50 px-5 py-5 md:px-8">
+  <div class="relative mx-auto flex max-w-6xl items-center justify-between">
+    <a href="{% url 'main:show_main' %}" class="font-display text-lg font-bold tracking-tight text-ink no-underline md:text-xl">
+      {{ name|default:"Fiqhi Deski" }}
+    </a>
+
+    <nav aria-label="Main navigation" class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
+      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_main' %}">Home</a>
+      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_main' %}#profile">About</a>
+      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_experience' %}">Experience</a>
+      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
+    </nav>
+
+    <div class="w-14 md:hidden" aria-hidden="true"></div>
+    <button
+      data-menu-toggle
+      type="button"
+      class="relative z-60 hidden size-14 place-items-center rounded-full bg-ink text-paper transition-transform duration-300 hover:scale-105 md:hidden"
+      aria-label="Open navigation menu"
+      aria-expanded="false"
+      aria-controls="site-menu"
+    >
+      <span class="sr-only">Open navigation menu</span>
+      <span class="flex w-5 flex-col gap-1.5" aria-hidden="true">
+        <span class="block h-px w-5 bg-paper"></span>
+        <span class="block h-px w-5 bg-paper"></span>
+      </span>
+    </button>
+  </div>
+</header>
+
+<div data-menu-overlay class="pointer-events-none fixed inset-0 z-40 bg-ink/20 opacity-0 transition-opacity duration-300" aria-hidden="true"></div>
+
+<aside
+  id="site-menu"
+  data-site-menu
+  class="fixed top-0 right-0 z-50 flex h-dvh w-[min(88vw,26rem)] translate-x-full flex-col bg-black px-8 pt-32 pb-8 text-paper shadow-2xl transition-transform duration-500 ease-out"
+  aria-label="Site navigation"
+  aria-hidden="true"
+>
+  <div class="flex items-center justify-between border-b border-paper/20 pb-6">
+    <p class="text-xs tracking-[0.15em] text-paper/50 uppercase">Navigation</p>
+
+    <button
+      data-menu-close
+      type="button"
+      class="grid size-10 place-items-center rounded-full border border-paper/20 text-paper transition-colors hover:bg-paper hover:text-ink"
+      aria-label="Close navigation menu"
+    >
+      <span class="relative block size-4" aria-hidden="true">
+        <span class="absolute top-1/2 left-0 block h-px w-4 rotate-45 bg-current"></span>
+        <span class="absolute top-1/2 left-0 block h-px w-4 -rotate-45 bg-current"></span>
+      </span>
+    </button>
+  </div>
+
+  <nav class="mt-10 flex flex-col gap-6 text-4xl font-medium">
+    <a class="transition-colors hover:text-primary" href="{% url 'main:show_main' %}">Home</a>
+    <a class="transition-colors hover:text-primary" href="{% url 'main:show_main' %}#profile">About</a>
+    <a class="transition-colors hover:text-primary" href="{% url 'main:show_experience' %}">Experience</a>
+    <a class="transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
+  </nav>
+
+  <div class="mt-auto border-t border-paper/20 pt-6">
+    <p class="text-xs tracking-[0.15em] text-paper/50 uppercase">Socials</p>
+    <ul class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+      <li><a class="hover:text-primary" href="#">GitHub</a></li>
+      <li><a class="hover:text-primary" href="#">LinkedIn</a></li>
+      <li><a class="hover:text-primary" href="#">Instagram</a></li>
+    </ul>
+  </div>
+</aside>
