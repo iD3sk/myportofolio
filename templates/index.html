@@ -1,208 +1,177 @@
-{% extends "base.html" %} {% block title %}{{ name }} - Portfolio{% endblock %} {% block content %}
-<section class="px-0 pt-18 pb-20" id="profile">
-  <!-- hero -->
-  <div class="mx-auto my-0 grid max-w-240 grid-cols-1 gap-x-12 gap-y-6 px-6 py-0 sm:grid-cols-[1.3fr_1fr]">
-    <!-- hero-identity -->
-    <div class="sm:col-start-1 sm:row-start-1">
-      <p class="hero-kicker mb-3 text-[0.85rem] font-bold tracking-[0.08em] text-accent-dark uppercase">Computer Science &middot; Universitas Indonesia</p>
-      <h1 class="font-display text-[clamp(3rem,7vw,5rem)] leading-[0.95] font-bold">{{ name }}</h1>
-    </div>
-    <!-- hero-photo -->
-    <div class="relative max-w-55 self-center sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:max-w-none">
-      <div class="photo-block absolute top-5 left-5 z-0 h-full w-full rounded-default bg-accent"></div>
-      <img
-        class="avatar relative z-1 block aspect-square w-full rounded-default border-[3px] border-ink object-cover"
-        src="/static/img/foto fiqhi.jpeg"
-        alt="Photo of Me"
-      />
-    </div>
-    <!-- hero-details -->
-    <div class="sm:col-start-1 sm:row-start-2">
-      <p class="bio mb-6 max-w-120 text-justify text-muted">{{ bio }}</p>
-      <dl class="meta-list mb-6 flex gap-8">
-        <div class="meta-row">
-          <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">NPM</dt>
-          <dd class="font-semibold">{{ npm }}</dd>
+{% extends "base.html" %} {% block title %}{{ name }} - Portfolio{% endblock %}
+{% block content %}
+  <section class="px-0 pt-18 pb-20" id="profile">
+    <!-- hero -->
+    <div class="mx-auto my-0 grid max-w-240 grid-cols-1 gap-x-12 gap-y-6 px-6 py-0 sm:grid-cols-[1.3fr_1fr]">
+      <!-- hero-identity -->
+      <div class="sm:col-start-1 sm:row-start-1">
+        <p class="hero-kicker mb-3 text-[0.85rem] font-bold tracking-[0.08em] text-accent-dark uppercase">Computer Science &middot; Universitas Indonesia</p>
+        <h1 class="font-display text-[clamp(3rem,7vw,5rem)] leading-[0.95] font-bold">{{ name }}</h1>
+      </div>
+      <!-- hero-photo -->
+      <div class="relative max-w-55 self-center sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:max-w-none">
+        <div class="photo-block absolute top-5 left-5 z-0 h-full w-full rounded-default bg-accent"></div>
+        <img class="avatar relative z-1 block aspect-square w-full rounded-default border-[3px] border-ink object-cover" src="/static/img/foto fiqhi.jpeg" alt="Photo of Me" />
+      </div>
+      <!-- hero-details -->
+      <div class="sm:col-start-1 sm:row-start-2">
+        <p class="bio mb-6 max-w-120 text-justify text-muted">{{ bio }}</p>
+        <dl class="meta-list mb-6 flex gap-8">
+          <div class="meta-row">
+            <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">NPM</dt>
+            <dd class="font-semibold">{{ npm }}</dd>
+          </div>
+          <div class="meta-row">
+            <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">Program</dt>
+            <dd class="font-semibold">{{ study_program }}</dd>
+          </div>
+        </dl>
+        <div class="flex flex-wrap gap-2">
+          <a href="https://github.com/iD3sk" class="social-link">GitHub</a>
+          <a href="https://www.linkedin.com/in/fiqhideski/" class="social-link">LinkedIn</a>
+          <a href="mailto:fiqhi.deski@ui.ac.id" class="social-link">Email</a>
         </div>
-        <div class="meta-row">
-          <dt class="mb-[0.15rem] text-xs tracking-[0.06em] text-muted uppercase">Program</dt>
-          <dd class="font-semibold">{{ study_program }}</dd>
-        </div>
-      </dl>
-      <div class="flex flex-wrap gap-2">
-        <a href="https://github.com/iD3sk" class="social-link">GitHub</a>
-        <a href="https://www.linkedin.com/in/fiqhideski/" class="social-link">LinkedIn</a>
-        <a href="mailto:fiqhi.deski@ui.ac.id" class="social-link">Email</a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="experience" class="py-20 md:py-28">
-  <div class="mx-auto max-w-280 px-6 md:px-10">
-    <h2 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-bold tracking-[-0.04em]">Recent Experiences</h2>
-    <p class="mt-7 max-w-3xl text-lg leading-relaxed text-muted md:text-xl">
-      Experiences in web development, academic mentoring, program coordination, and environmental volunteering.
-    </p>
+  <section id="experience" class="py-20 md:py-28">
+    <div class="mx-auto max-w-280 px-6 md:px-10">
+      <h2 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-bold tracking-[-0.04em]">Recent Experiences</h2>
+      <p class="mt-7 max-w-3xl text-lg leading-relaxed text-muted md:text-xl">Experiences in web development, academic mentoring, program coordination, and environmental volunteering.</p>
 
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
-        <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
-      </div>
-
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">FK</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of IT Force Division</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">Forum Ukhuwah dan Kajian Islam Fasilkom UI</p>
-          </div>
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
+          <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
         </div>
 
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Designed the curriculum and timeline for an internal class program, coordinated updates and assignments, and developed frontend and backend features
-          for FUKI's learning-resources website.
-        </p>
-
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Curriculum Design</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Frontend</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Backend</li>
-        </ul>
-      </div>
-    </article>
-
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
-        <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
-      </div>
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">BEM</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Academic and Profession</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">BEM Fakultas Ilmu Komputer Universitas Indonesia</p>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">FK</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of IT Force Division</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">Forum Ukhuwah dan Kajian Islam Fasilkom UI</p>
+            </div>
           </div>
-        </div>
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Managed Ajar.in, a peer-mentoring program connecting students to support academic learning.
-        </p>
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Peer Mentoring</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Program Management</li>
-        </ul>
-      </div>
-    </article>
 
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
-        <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
-      </div>
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">DDP</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Academic</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">Dasar-Dasar Pemrograman</p>
-          </div>
-        </div>
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Created learning modules on basic programming concepts with Python and developed quiz problems for the course.
-        </p>
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Python</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Learning Materials</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Quiz Development</li>
-        </ul>
-      </div>
-    </article>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Designed the curriculum and timeline for an internal class program, coordinated updates and assignments, and developed frontend and backend features for FUKI's learning-resources website.</p>
 
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Apr 2026 &mdash; Present</p>
-        <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
-      </div>
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">CF</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Data Science Academy</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">COMPFEST</p>
-          </div>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Curriculum Design</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Frontend</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Backend</li>
+          </ul>
         </div>
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Curated program content and selected participants for the Data Science Academy.
-        </p>
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Content Curation</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Participant Selection</li>
-        </ul>
-      </div>
-    </article>
+      </article>
 
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Jan 2026 &mdash; Present</p>
-        <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
-      </div>
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">BT</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Mentor and Mentees Division</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">BETIS Fasilkom UI 2026</p>
-          </div>
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
+          <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
         </div>
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Onboarded new mentees, coordinated and led regular group mentoring sessions, and reviewed academic progress to provide targeted feedback.
-        </p>
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Mentoring</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Onboarding</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Academic Feedback</li>
-        </ul>
-      </div>
-    </article>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">BEM</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Academic and Profession</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">BEM Fakultas Ilmu Komputer Universitas Indonesia</p>
+            </div>
+          </div>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Managed Ajar.in, a peer-mentoring program connecting students to support academic learning.</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Peer Mentoring</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Program Management</li>
+          </ul>
+        </div>
+      </article>
 
-    <article
-      class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <div>
-        <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Jun 2026 &mdash; Jul 2026</p>
-        <p class="mt-2 text-sm text-paper/60">Depok</p>
-      </div>
-      <div>
-        <div class="flex items-start gap-4">
-          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">AI</div>
-          <div>
-            <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Local Volunteer</h3>
-            <p class="mt-1 text-base text-paper/70 md:text-lg">iGV Summer Project 2026 by AIESEC</p>
-          </div>
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">May 2026 &mdash; Present</p>
+          <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
         </div>
-        <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">
-          Delivered SDG 15 education sessions across five schools in Jakarta and Depok, led a beach cleanup at Bokor Island with BKSDA, and visited more than
-          ten partner organizations to build environmental and social awareness.
-        </p>
-        <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Environmental Education</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">SDG 15</li>
-          <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Volunteering</li>
-        </ul>
-      </div>
-    </article>
-  </div>
-</section>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">DDP</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Academic</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">Dasar-Dasar Pemrograman</p>
+            </div>
+          </div>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Created learning modules on basic programming concepts with Python and developed quiz problems for the course.</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Python</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Learning Materials</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Quiz Development</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Apr 2026 &mdash; Present</p>
+          <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
+        </div>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">CF</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Data Science Academy</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">COMPFEST</p>
+            </div>
+          </div>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Curated program content and selected participants for the Data Science Academy.</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Content Curation</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Participant Selection</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Jan 2026 &mdash; Present</p>
+          <p class="mt-2 text-sm text-paper/60">Depok, Jawa Barat</p>
+        </div>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">BT</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Staff of Mentor and Mentees Division</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">BETIS Fasilkom UI 2026</p>
+            </div>
+          </div>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Onboarded new mentees, coordinated and led regular group mentoring sessions, and reviewed academic progress to provide targeted feedback.</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Mentoring</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Onboarding</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Academic Feedback</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+        <div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">Jun 2026 &mdash; Jul 2026</p>
+          <p class="mt-2 text-sm text-paper/60">Depok</p>
+        </div>
+        <div>
+          <div class="flex items-start gap-4">
+            <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">AI</div>
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">Local Volunteer</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">iGV Summer Project 2026 by AIESEC</p>
+            </div>
+          </div>
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">Delivered SDG 15 education sessions across five schools in Jakarta and Depok, led a beach cleanup at Bokor Island with BKSDA, and visited more than ten partner organizations to build environmental and social awareness.</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Environmental Education</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">SDG 15</li>
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">Volunteering</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
 {% endblock %}
