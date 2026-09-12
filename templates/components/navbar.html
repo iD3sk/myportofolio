@@ -6,7 +6,7 @@
 
     <nav aria-label="Main navigation" class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
       <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_main' %}">Home</a>
-      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_main' %}#profile">About</a>
+      <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_about' %}">About</a>
       <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="{% url 'main:show_experience' %}">Experience</a>
       <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
     </nav>
@@ -56,7 +56,7 @@
 
   <nav class="mt-10 flex flex-col gap-6 text-4xl font-medium">
     <a class="transition-colors hover:text-primary" href="{% url 'main:show_main' %}">Home</a>
-    <a class="transition-colors hover:text-primary" href="{% url 'main:show_main' %}#profile">About</a>
+    <a class="transition-colors hover:text-primary" href="{% url 'main:show_about' %}">About</a>
     <a class="transition-colors hover:text-primary" href="{% url 'main:show_experience' %}">Experience</a>
     <a class="transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
   </nav>
