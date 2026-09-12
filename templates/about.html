@@ -81,6 +81,9 @@
           <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
         </div>
       </article>
+
+      {% empty %}
+        <h1>No achievement available</h1>
       {% endfor %}
     </div>
   </div>
