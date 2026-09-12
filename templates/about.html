@@ -1,91 +1,84 @@
-{% extends "base.html" %} {% load static %} {% block title %}About {{ name }} - Portfolio{% endblock %} {% block content %}
-<section id="about" class="px-5 pt-32 pb-20 md:px-10 md:pt-40 md:pb-28">
-  <div class="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1fr_0.8fr] md:items-center md:gap-20">
-    <div>
-      <p class="text-sm font-semibold tracking-[0.12em] text-accent-dark uppercase">About me</p>
-      <h1 class="mt-4 max-w-2xl font-display text-[clamp(3rem,7vw,5.5rem)] leading-[0.95] font-bold">Hi, I'm {{ name }}.</h1>
-      <p class="mt-8 max-w-xl text-lg leading-relaxed text-muted md:text-xl">{{ bio }}</p>
+{% extends "base.html" %} {% load static %} {% block title %}About {{ name }} - Portfolio{% endblock %}
+{% block content %}
+  <section id="about" class="px-5 pt-32 pb-20 md:px-10 md:pt-40 md:pb-28">
+    <div class="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1fr_0.8fr] md:items-center md:gap-20">
+      <div>
+        <p class="text-sm font-semibold tracking-[0.12em] text-accent-dark uppercase">About me</p>
+        <h1 class="mt-4 max-w-2xl font-display text-[clamp(3rem,7vw,5.5rem)] leading-[0.95] font-bold">Hi, I'm {{ name }}.</h1>
+        <p class="mt-8 max-w-xl text-lg leading-relaxed text-muted md:text-xl">{{ bio }}</p>
+      </div>
+
+      <div class="relative mx-auto w-full max-w-md">
+        <div class="absolute top-5 left-5 h-full w-full rounded-default bg-accent" aria-hidden="true"></div>
+        <img class="relative aspect-square w-full rounded-default border-[3px] border-ink object-cover" src="/static/img/foto fiqhi.jpeg" alt="Portrait of {{ name }}" />
+      </div>
     </div>
+  </section>
 
-    <div class="relative mx-auto w-full max-w-md">
-      <div class="absolute top-5 left-5 h-full w-full rounded-default bg-accent" aria-hidden="true"></div>
-      <img
-        class="relative aspect-square w-full rounded-default border-[3px] border-ink object-cover"
-        src="/static/img/foto fiqhi.jpeg"
-        alt="Portrait of {{ name }}"
-      />
+  <section id="education" class="px-5 py-20 md:px-10 md:py-28">
+    <div class="mx-auto max-w-6xl">
+      <p class="text-sm font-semibold tracking-[0.12em] text-accent-dark uppercase">Background</p>
+      <h2 class="mt-4 font-display text-[clamp(2.75rem,6vw,5rem)] leading-[0.95] font-bold">My Education</h2>
+
+      {% if UI %}
+        <article id="UI" class="mt-12 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
+          <h3 class="mt-8 font-display text-3xl font-bold md:text-4xl">{{ UI.institution }}</h3>
+          <p class="mt-2 text-lg text-paper/70">{{ UI.program }}</p>
+          <p class="mt-2 text-sm text-paper/60">{{ UI.started_at }} &mdash; Present</p>
+          <p class="mt-8 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">{{ UI.description }}</p>
+        </article>
+      {% endif %}
+
+      <div class="mt-12 grid gap-8 md:grid-cols-2">
+        {% if SMA %}
+          <article class="rounded-xl border-2 border-ink bg-paper p-6 md:p-8">
+            <h3 class="mt-8 font-display text-2xl font-bold md:text-3xl">{{ SMA.level }}</h3>
+            <p class="mt-2 text-muted">{{ SMA.institution }}</p>
+            <p class="mt-2 text-sm text-muted">{{ SMA.started_at }} &mdash; {{ SMA.ended_at }}</p>
+            <p class="mt-8 leading-relaxed text-muted">{{ SMA.description }}</p>
+          </article>
+        {% endif %}
+
+        {% if SMP %}
+          <article class="rounded-xl border-2 border-ink bg-paper p-6 md:p-8">
+            <h3 class="mt-8 font-display text-2xl font-bold md:text-3xl">{{ SMP.level }}</h3>
+            <p class="mt-2 text-muted">{{ SMP.institution }}</p>
+            <p class="mt-2 text-sm text-muted">{{ SMP.started_at }} &mdash; {{ SMP.ended_at }}</p>
+            <p class="mt-8 leading-relaxed text-muted">{{ SMP.description }}</p>
+          </article>
+        {% endif %}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="education" class="px-5 py-20 md:px-10 md:py-28">
-  <div class="mx-auto max-w-6xl">
-    <p class="text-sm font-semibold tracking-[0.12em] text-accent-dark uppercase">Background</p>
-    <h2 class="mt-4 font-display text-[clamp(2.75rem,6vw,5rem)] leading-[0.95] font-bold">My Education</h2>
+  <section id="achievements" class="px-5 py-20 md:px-10 md:py-28">
+    <div class="mx-auto max-w-6xl">
+      <h2 class="mt-4 font-display text-[clamp(2.75rem,6vw,5rem)] leading-[0.95] font-bold">Achievements</h2>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">Recognition from competitions, academic work, and other milestones.</p>
 
-    <article
-      id="UI"
-      class="mt-12 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]"
-    >
-      <h3 class="mt-8 font-display text-3xl font-bold md:text-4xl">{{ UI.institution }}</h3>
-      <p class="mt-2 text-lg text-paper/70">{{ UI.program }}</p>
-      <p class="mt-2 text-sm text-paper/60">{{ UI.started_at }} &mdash; Present</p>
-      <p class="mt-8 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">{{ UI.description }}</p>
-    </article>
+      <div class="mt-12 grid gap-8">
+        {% for achievement in achievement_list %}
+          <article class="grid grid-cols-[4.5rem_1fr] gap-x-5 gap-y-6 rounded-xl border-2 border-ink/20 bg-paper p-5 shadow-[6px_6px_0_var(--color-line)] md:grid-cols-[5rem_1fr] md:gap-x-7 md:p-8">
+            <div class="flex size-18 items-center justify-center rounded-default border border-ink/20 bg-white p-2 shadow-sm md:size-20">
+              <img src="{% static 'img/osn.webp' %}" alt="OSN logo" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async" />
+            </div>
 
-    <div class="mt-12 grid gap-8 md:grid-cols-2">
-      <article class="rounded-xl border-2 border-ink bg-paper p-6 md:p-8">
-        <h3 class="mt-8 font-display text-2xl font-bold md:text-3xl">{{ SMA.level }}</h3>
-        <p class="mt-2 text-muted">{{ SMA.institution }}</p>
-        <p class="mt-2 text-sm text-muted">{{ SMA.started_at }} &mdash; {{ SMA.ended_at }}</p>
-        <p class="mt-8 leading-relaxed text-muted">{{ SMA.description }}</p>
-      </article>
+            <div class="flex min-w-0 flex-col items-start">
+              <span data-rank="{{ achievement.rank }}" class="inline-flex min-w-20 items-center justify-center rounded-sm px-3 py-1.5 text-xs font-bold tracking-widest text-white uppercase shadow-[3px_3px_0_var(--color-ink)] data-[rank=bronze]:bg-[#9a4f16] data-[rank=gold]:bg-[#8a6500] data-[rank=silver]:bg-[#5f6b76]">{{ achievement.get_rank_display }}</span>
+              <h3 class="mt-4 font-display text-xl leading-tight font-bold md:text-2xl">{{ achievement.title }}</h3>
+              <p class="mt-2 text-muted">{{ achievement.organization }}</p>
+            </div>
 
-      <article class="rounded-xl border-2 border-ink bg-paper p-6 md:p-8">
-        <h3 class="mt-8 font-display text-2xl font-bold md:text-3xl">{{ SMP.level }}</h3>
-        <p class="mt-2 text-muted">{{ SMP.institution }}</p>
-        <p class="mt-2 text-sm text-muted">{{ SMP.started_at }} &mdash; {{ SMP.ended_at }}</p>
-        <p class="mt-8 leading-relaxed text-muted">{{ SMP.description }}</p>
-      </article>
+            <p class="col-span-2 max-w-3xl leading-relaxed text-muted">{{ achievement.description }}</p>
+
+            <div class="col-span-2 border-t border-ink/20 pt-4">
+              <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
+            </div>
+          </article>
+          {% empty %}
+          <h1>No achievement available</h1>
+        {% endfor %}
+      </div>
     </div>
-  </div>
-</section>
-
-<section id="achievements" class="px-5 py-20 md:px-10 md:py-28">
-  <div class="mx-auto max-w-6xl">
-    <h2 class="mt-4 font-display text-[clamp(2.75rem,6vw,5rem)] leading-[0.95] font-bold">Achievements</h2>
-    <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">Recognition from competitions, academic work, and other milestones.</p>
-
-    <div class="mt-12 grid gap-8">
-      {% for achievement in achievement_list %}
-      <article
-        class="grid grid-cols-[4.5rem_1fr] gap-x-5 gap-y-6 rounded-xl border-2 border-ink/20 bg-paper p-5 shadow-[6px_6px_0_var(--color-line)] md:grid-cols-[5rem_1fr] md:gap-x-7 md:p-8"
-      >
-        <div class="flex size-18 items-center justify-center rounded-default border border-ink/20 bg-white p-2 shadow-sm md:size-20">
-          <img src="{% static 'img/osn.webp' %}" alt="OSN logo" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async" />
-        </div>
-
-        <div class="flex min-w-0 flex-col items-start">
-          <span
-            class="{% if achievement.rank == 'gold' %}bg-[#8a6500]{% elif achievement.rank == 'silver' %}bg-[#5f6b76]{% elif achievement.rank == 'bronze' %}bg-[#9a4f16]{% endif %} inline-flex min-w-20 items-center justify-center rounded-sm px-3 py-1.5 text-xs font-bold tracking-widest text-white uppercase shadow-[3px_3px_0_var(--color-ink)]"
-          >
-            {{ achievement.get_rank_display }}
-          </span>
-          <h3 class="mt-4 font-display text-xl leading-tight font-bold md:text-2xl">{{ achievement.title }}</h3>
-          <p class="mt-2 text-muted">{{ achievement.organization }}</p>
-        </div>
-
-        <p class="col-span-2 max-w-3xl leading-relaxed text-muted">{{ achievement.description }}</p>
-
-        <div class="col-span-2 border-t border-ink/20 pt-4">
-          <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
-        </div>
-      </article>
-
-      {% empty %}
-        <h1>No achievement available</h1>
-      {% endfor %}
-    </div>
-  </div>
-</section>
+  </section>
 {% endblock %}

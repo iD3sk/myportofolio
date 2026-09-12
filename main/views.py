@@ -31,16 +31,16 @@ def show_about(request):
             "(and slightly dreaded) face among Fasilkom students as a teaching assistant "
             "across several courses."
         ),
-        "UI": Educations.objects.get(
+        "UI": Educations.objects.filter(
             institution="Universitas Indonesia",
             program="S1 Ilmu Komputer",
-        ),
-        "SMA": Educations.objects.get(
+        ).first(),
+        "SMA": Educations.objects.filter(
             institution="SMAN 1 Padang Panjang",
-        ),
-        "SMP": Educations.objects.get(
+        ).first(),
+        "SMP": Educations.objects.filter(
             institution="SMP Islam Raudhatul Jannah",
-        ),
+        ).first(),
         "achievement_list": Achievements.objects.order_by("display_order", "-year"),
     }
     return render(request, "about.html", context)

@@ -192,3 +192,12 @@ class TestAbout(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No achievement available")
+
+    def test_about_page_with_empty_database(self):
+        Educations.objects.all().delete()
+        Achievements.objects.all().delete()
+
+        response = self.client.get(reverse("main:show_about"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No achievement available")
