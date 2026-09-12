@@ -1,5 +1,7 @@
 import uuid
+
 from django.db import models
+
 
 class Experience(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -18,3 +20,31 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+
+class Educations(models.Model):
+    level = models.CharField(max_length=255, blank=True)
+    institution = models.CharField(max_length=255)
+    program = models.CharField(max_length=255, blank=True)
+    started_at = models.PositiveIntegerField()
+    ended_at = models.PositiveIntegerField(blank=True, null=True)
+    description = models.TextField(blank=True)
+    display_order = models.IntegerField(default=0)
+
+    @property
+    def is_on_going(self):
+        return self.ended_at is None
+
+
+class Achievements(models.Model):
+    class Rank(models.TextChoices):
+        BRONZE = "bronze", "Bronze"
+        SILVER = "silver", "Silver"
+        GOLD = "gold", "Gold"
+
+    title = models.CharField(max_length=255)
+    year = models.IntegerField()
+    organization = models.CharField(max_length=255)
+    rank = models.CharField(max_length=10, choices=Rank.choices)
+    description = models.TextField(blank=True)
+    display_order = models.PositiveIntegerField(default=0)
