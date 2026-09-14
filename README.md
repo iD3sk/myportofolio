@@ -142,3 +142,62 @@ Referensi log chat:
 ```bash
 https://chatgpt.com/s/cx_6a9ed348faf48191bc47928a8c00a088
 ```
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+# Tugas 2
+
+Pada minggu ini, aku membuat halaman `/about/` yang menampilkan profil singkat, education, dan achievement. Aku juga merapikan struktur template menggunakan `base.html` sebagai template utama. Navbar dan footer dipisahkan menjadi komponen agar dapat digunakan kembali pada halaman lain tanpa menulis ulang kode yang sama.
+
+> Jelaskan alur yang terjadi ketika pengguna membuka halaman portofolio baru, mulai dari permintaan yang diterima proyek hingga data ditampilkan pada browser. Dalam jawabanmu, jelaskan peran urls.py proyek, urls.py aplikasi, view, model, dan template.
+
+<br>
+
+1. Ketika pengguna membuka `/about/`, Django menerima request dan memeriksanya melalui `urls.py` proyek. File tersebut meneruskan routing ke `main/urls.py`, yang mencocokkan path `about/` dengan view `show_about`. View kemudian mengambil data pendidikan dan pencapaian dari model `Educations` dan `Achievements`. Data tersebut dimasukkan ke dalam context dan dikirim ke `about.html`. Template memproses context dengan Django Template Language, lalu Django mengembalikan hasil HTML kepada browser.
+
+<br>
+
+> Mengapa data untuk bagian portofolio baru sebaiknya disimpan pada model dan tidak ditulis langsung di dalam template? Jelaskan dampaknya terhadap kemudahan pemeliharaan dan pengembangan aplikasi.
+
+2. Data sebaiknya disimpan dalam model karena model menjadi struktur utama untuk menyimpan dan mengambil data dari database. Dengan begitu, perubahan pada pendidikan atau pencapaian dapat dilakukan melalui database tanpa mengubah struktur HTML. Template hanya bertugas menampilkan data yang diterima dari view. Pemisahan ini membuat kode lebih mudah dipelihara, mengurangi pengulangan, dan mempermudah penambahan fitur seperti formulir atau halaman admin pada pengembangan berikutnya.
+
+<br>
+
+> Apa perbedaan fungsi makemigrations dan migrate pada Django? Berikan contoh perubahan model yang mengharuskanmu menjalankan kedua perintah tersebut.
+
+3. `makemigrations` membuat file migration berdasarkan perubahan yang terdeteksi pada model, sedangkan `migrate` menerapkan isi file migration tersebut ke database. Contohnya, ketika aku menambahkan model `Educations` dan `Achievements`, aku menjalankan `python manage.py makemigrations` untuk mencatat struktur tabel yang baru. Setelah itu, aku menjalankan `python manage.py migrate` agar tabel tersebut benar-benar dibuat di database.
+
+## AI Disclosure
+
+### Overview
+
+Aku menggunakan AI agent Codex untuk membantu pengerjaan Tugas 2 dalam hal:
+
+1. Menjelaskan penggunaan template inheritance melalui `base.html` serta komponen navbar dan footer.
+2. Membantu menyusun seeding data pendidikan dan pencapaian dari file Python.
+3. Menjelaskan hubungan antara model, migration, database, view, context, dan template pada Django.
+4. Membantu membuat tampilan rank gold, silver, dan bronze serta mengatur layout logo pencapaian.
+5. Membantu menelusuri error `no such table` pada model Experience.
+
+### Strategi Prompting
+
+Aku memberikan prompt secara bertahap sesuai bagian yang sedang dikerjakan. Aku memulai dari pertanyaan konsep, lalu memberikan konteks file aktif dan meminta AI memeriksa implementasi yang sudah ada. Saat menemukan error, aku menyampaikan pesan error dan perubahan terakhir agar AI dapat menelusuri penyebabnya dari model, migration, database, dan proses server.
+
+### Keterbatasan AI
+
+Jawaban AI tidak selalu langsung sesuai dengan kondisi proyek. Contohnya, perubahan nama model dari `Experience` menjadi `Experiences` membuat Django mencari tabel dengan nama berbeda, walaupun tabel dan data lama masih ada. Beberapa saran layout juga tetap perlu diperiksa langsung karena hasil akhirnya bergantung pada ukuran layar dan susunan konten.
+
+### Perbaikan Manual
+
+Aku menentukan isi data, urutan tampil, dan keputusan visual pada halaman About. Aku juga memeriksa kembali nama model dan referensinya di view, menjalankan migration, serta menguji halaman melalui browser. Saran dari AI digunakan sebagai panduan, kemudian disesuaikan dengan struktur dan kebutuhan proyekku.
+
+Referensi log chat:
+
+```text
+https://chatgpt.com/s/cx_6aa53a0b98608191855503fb5b0d798e
+```

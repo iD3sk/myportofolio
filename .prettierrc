@@ -1,6 +1,14 @@
 {
-  "plugins": ["prettier-plugin-tailwindcss"],
+  "plugins": ["prettier-plugin-jinja-template", "prettier-plugin-tailwindcss"],
   "tailwindStylesheet": "./static/css/app.css",
-  "printWidth": 160,
-  "singleAttributePerLine": false
+  "printWidth": 9999,
+  "singleAttributePerLine": false,
+  "overrides": [
+    {
+      "files": ["templates/**/*.html"],
+      "options": {
+        "parser": "jinja-template"
+      }
+    }
+  ]
 }
