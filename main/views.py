@@ -1,6 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from main.models import Experience, Educations, Achievements
+from main.forms import ExperienceForm
+from django.contrib import messages
+from django.core import serializers
+from django.http import HttpResponse
 
 
 def show_main(request):
@@ -44,3 +48,19 @@ def show_about(request):
         "achievement_list": Achievements.objects.order_by("display_order", "-year"),
     }
     return render(request, "about.html", context)
+
+
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "New experience has been added!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Fiqhi",
+        "form": form,
+    }
+    return render(request, "experience_form.html", context) 
+    
