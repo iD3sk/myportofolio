@@ -19,12 +19,45 @@ def show_main(request):
     return render(request, "index.html", context)
 
 
-def show_experience(request):
+def show_experiences(request):
+    json_response = get_experience_json(request)
+
+    experiences = serializers.deserialize(
+        "json",
+        json_response.content.decode('utf-8'),
+    )
+
+    experiences = [experience.object for experience in experiences]
+    title_query = request.GET.get("title", "").strip()
+
     context = {
         "name": "Fiqhi Deski Ismail",
-        "experience_list": Experience.objects.all(),
+        "experience_list": experiences,
+        "title_query": title_query,
     }
+
     return render(request, "experiences.html", context)
+
+
+def get_experience_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experiences = Experience.objects.all()
+
+    if title_query:
+        experiences = experiences.filter(title__icontains=title_query)
+
+    experiences_json = serializers.serialize("json", experiences)
+    return HttpResponse(experiences_json, content_type="application/json")
+
+
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "experience berhasil dihapus!")
+
+    return redirect("main:show_experiences")
 
 
 def show_about(request):
@@ -56,7 +89,7 @@ def create_experience(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "New experience has been added!")
-        return redirect("main:show_experience")
+        return redirect("main:show_experiences")
 
     context = {
         "name": "Fiqhi",

@@ -43,7 +43,7 @@ class TestMain(TestCase):
         self.assertTrue(self.experience.is_ongoing)
 
     def test_experience_page(self):
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(reverse("main:show_experiences"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
@@ -58,7 +58,7 @@ class TestMain(TestCase):
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(reverse("main:show_experiences"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
@@ -70,7 +70,7 @@ class TestMain(TestCase):
         self.experience.ended_at = date(2026, 7, 1)
         self.experience.save()
         self.experience.refresh_from_db()
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(reverse("main:show_experiences"))
 
         self.assertFalse(self.experience.is_ongoing)
         self.assertContains(response, "May 2026 &mdash; July 2026")
@@ -84,7 +84,7 @@ class TestMain(TestCase):
             started_at=date(2026, 6, 1),
             ended_at=date(2026, 7, 1),
         )
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(reverse("main:show_experiences"))
 
         self.assertQuerySetEqual(
             response.context["experience_list"],
