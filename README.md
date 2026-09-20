@@ -198,6 +198,59 @@ Aku menentukan isi data, urutan tampil, dan keputusan visual pada halaman About.
 
 Referensi log chat:
 
-```text
+```bash
 https://chatgpt.com/s/cx_6aa53a0b98608191855503fb5b0d798e
 ```
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+### Tugas 3
+
+Pada minggu ini, aku membuat fitur create, update, dan delete untuk data achievement menggunakan `ModelForm`. Data achievement juga dapat serialisasi dalam format JSON, kemudian di-deserialisasi sebelum ditampilkan kembali pada halaman About.
+
+> Jelaskan mengapa kita menggunakan `ModelForm` pada Django alih-alih membuat form HTML secara manual. Selain itu, jelaskan pula mengapa kita diwajibkan menambahkan `{% csrf_token %}` pada form tersebut!
+
+<br>
+
+1. `ModelForm` digunakan karena Django dapat membentuk field form, menjalankan validasi, dan menyimpan data berdasarkan definisi model. Dengan demikian, aku tidak perlu menulis ulang struktur dan aturan setiap field secara manual serta dapat menjaga form tetap konsisten dengan model. `{% csrf_token %}` diperlukan pada form yang mengirim request `POST` untuk memastikan request berasal dari halaman yang sah. Django akan memvalidasi token tersebut agar pihak lain tidak dapat mengirim request atas nama pengguna melalui serangan Cross-Site Request Forgery (CSRF).
+
+<br>
+
+> Pada Tutorial 03, kita membahas format data JSON dan XML. Mengapa JSON lebih disukai dalam pengembangan aplikasi web modern dibandingkan XML?
+
+2. JSON lebih disukai karena sintaksnya lebih ringkas sehingga ukuran data dan proses parsing umumnya lebih sederhana. Struktur object dan array pada JSON juga sesuai dengan struktur data JavaScript, sehingga dapat langsung diproses menggunakan fitur bawaan browser. XML lebih panjang karena menggunakan tag pembuka dan penutup serta biasanya memerlukan parser dan penanganan struktur yang lebih kompleks.
+
+<br>
+
+> Jelaskan alur yang terjadi saat kamu menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses serialization pada model Django sebelum datanya dikembalikan?
+
+3. Saat halaman About dibuka, view mengambil data `Achievements` dari database melalui QuerySet. Fungsi `get_achievement_json` mengubah QuerySet tersebut menjadi JSON menggunakan `serializers.serialize`, lalu mengembalikannya sebagai `HttpResponse` dengan content type `application/json`. Pada `show_about`, respons JSON tersebut di-deserialisasi kembali menjadi object Python, dimasukkan ke dalam context, lalu ditampilkan oleh template. Serialization diperlukan karena instance model dan QuerySet merupakan object Python yang tidak dapat langsung dikirim melalui HTTP sebagai JSON. Proses tersebut mengubah field model menjadi representasi teks yang dapat dipertukarkan antara server dan client.
+
+## AI Disclosure
+
+### Overview
+
+Aku menggunakan AI agent Codex untuk membantu pengerjaan Tutorial dan Tugas 3 dalam hal:
+
+1. Menjelaskan perbedaan antara contoh Project pada tutorial dan implementasi yang perlu disesuaikan dengan bagian portofolioku.
+2. Menjelaskan alur `ModelForm`, validasi form, penyimpanan data, serta hubungan antara field model dan input HTML.
+3. Membantu menyesuaikan form Experience dan Achievement dengan struktur model yang digunakan.
+4. Membantu menelusuri class Tailwind pada widget form yang belum masuk ke hasil build CSS.
+5. Membantu menyusun jawaban reflektif Tugas 3 berdasarkan implementasi yang telah dibuat.
+
+### Strategi Prompting
+
+Aku memberikan konteks file dan bagian yang sedang dikerjakan, kemudian mengajukan pertanyaan secara bertahap mengenai konsep dan alur framework. Saat terdapat masalah pada form atau styling, aku menunjukkan implementasi yang sudah ada dan meminta AI menjelaskan penyebabnya sebelum menyesuaikan solusi dengan model serta design token proyekku.
+
+### Keterbatasan AI
+
+AI terkadang memberikan solusi yang terlalu umum atau mengasumsikan struktur proyek yang berbeda. Beberapa saran juga menggunakan pendekatan yang belum dibahas dalam tutorial. Karena AI tidak selalu memahami seluruh kondisi proyek dan hasil tampilan di browser, kode yang diberikan tetap perlu diperiksa, diuji, dan disesuaikan secara manual.
+
+### Perbaikan Manual
+
+Aku memeriksa setiap saran AI terhadap materi tutorial dan struktur proyek yang sebenarnya sebelum menerapkannya. Aku menyesuaikan nama model, field, URL, view, dan template dengan bagian Experience dan Achievement milikku, lalu menguji alur create, update, delete, serta data delivery. Aku juga memeriksa hasil tampilan secara langsung dan menyesuaikan styling form serta tombol agar tetap konsisten dengan desain portofolio.
