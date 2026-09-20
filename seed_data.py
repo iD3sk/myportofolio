@@ -129,6 +129,7 @@ Achievements.objects.update_or_create(
     defaults={
         "rank": Achievements.Rank.SILVER,
         "description": "Ranked second among participants in West Sumatra at the provincial-level Informatics Olympiad.",
+        "org_logo": "img/osn.webp",
     },
 )
 
@@ -139,6 +140,7 @@ Achievements.objects.update_or_create(
     defaults={
         "rank": Achievements.Rank.GOLD,
         "description": "Ranked first at the city-level selection for the Indonesian National Olympiad in Informatics.",
+        "org_logo": "img/osn.webp",
     },
 )
 

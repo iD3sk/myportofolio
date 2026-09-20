@@ -42,12 +42,15 @@ class Educations(models.Model):
 
 class Achievements(models.Model):
     class Rank(models.TextChoices):
+        FINALIST = "finalist", "Finalist"
         BRONZE = "bronze", "Bronze"
         SILVER = "silver", "Silver"
         GOLD = "gold", "Gold"
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     year = models.IntegerField()
     organization = models.CharField(max_length=255)
+    org_logo = models.CharField(null=True, blank=True, max_length=255)
     rank = models.CharField(max_length=10, choices=Rank.choices)
     description = models.TextField(blank=True)
