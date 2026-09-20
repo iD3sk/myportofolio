@@ -55,12 +55,16 @@
     <div class="mx-auto max-w-6xl">
       <h2 class="mt-4 font-display text-[clamp(2.75rem,6vw,5rem)] leading-[0.95] font-bold">Achievements</h2>
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">Recognition from competitions, academic work, and other milestones.</p>
-
+      <div class="mt-8 flex justify-end">
+        <a href="{% url 'main:create_achievement' %}" class="inline-flex items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">
+          Add Achievement
+        </a>
+      </div>
       <div class="mt-12 grid gap-8">
         {% for achievement in achievement_list %}
           <article class="grid grid-cols-[4.5rem_1fr] gap-x-5 gap-y-6 rounded-xl border-2 border-ink/20 bg-paper p-5 shadow-[6px_6px_0_var(--color-line)] md:grid-cols-[5rem_1fr] md:gap-x-7 md:p-8">
             <div class="flex size-18 items-center justify-center rounded-default border border-ink/20 bg-white p-2 shadow-sm md:size-20">
-              <img src="{% static 'img/osn.webp' %}" alt="OSN logo" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async" />
+              <img src="{% static achievement.org_logo %}" alt="org logo" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async" />
             </div>
 
             <div class="flex min-w-0 flex-col items-start">
@@ -73,7 +77,22 @@
 
             <div class="col-span-2 border-t border-ink/20 pt-4">
               <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
+              <div class="mt-6 flex justify-end">
+              <div class="flex w-full gap-3 sm:w-1/3">
+                <a href="{% url 'main:update_achievement' achievement.id %}" class="inline-flex box-border w-1/2 items-center justify-center rounded-xl border border-transparent bg-primary px-5 py-1.5 text-sm font-semibold text-paper transition-colors hover:border-primary hover:bg-primary hover:text-paper sm:py-2">
+                  Edit Achievement
+                </a>
+                <form method="post" action="{% url 'main:delete_achievement' achievement.id %}" class="w-1/2">
+                  {% csrf_token %}
+                  <button type="submit" class="inline-flex box-border w-full items-center justify-center rounded-xl border border-transparent bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
+                    Delete Achievement
+                  </button>
+                </form>
+              </div>
             </div>
+            </div>
+
+
           </article>
           {% empty %}
           <h1>No achievement available</h1>

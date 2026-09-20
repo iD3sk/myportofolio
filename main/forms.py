@@ -1,6 +1,6 @@
-from django.forms import ModelForm, TextInput, Textarea, CharField
+from django.forms import ModelForm, TextInput, Textarea, CharField, NumberInput, Select
 
-from main.models import Experience
+from main.models import Experience, Achievements
 
 class ExperienceForm(ModelForm):
     skills = CharField(
@@ -88,3 +88,73 @@ class ExperienceForm(ModelForm):
                 }
             ),
         }
+
+
+
+class AchievementForm(ModelForm):
+    class Meta:
+        model = Achievements
+        fields = [
+            "title",
+            "year",
+            "organization",
+            "rank",
+            "description",
+            "org_logo"
+        ]
+
+        labels = {
+            "title": "Achievement's name",
+            "year": "Year",
+            "organization": "Organization",
+            "rank": "Rank",
+            "description": "Description",
+            "org_logo": "Logo PATH"
+        }
+
+        widgets = {
+            "title": TextInput(
+                attrs={
+                    "placeholder": "",
+                    "maxlength": 255,
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
+                }
+            ),
+            "year": NumberInput(
+                attrs={
+                    "placeholder": "2026",
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink",
+                }
+            ),
+            "organization": TextInput(
+                attrs={
+                    "placeholder": "Puspresnas",
+                    "maxlength": 255,
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
+                }
+            ),
+            "rank": Select(
+                attrs={
+                    "placeholder": "Gold",
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink",
+                }
+            ),
+            "description": Textarea(
+                attrs={
+                    "placeholder": "Deskripsi pengalaman",
+                    "rows": 5,
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
+                }
+            ),
+            "org_logo": TextInput(
+                attrs={
+                    "placeholder": "",
+                    "maxlength": 255,
+                    "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
+                }
+            ), 
+        }
+
+
+
+

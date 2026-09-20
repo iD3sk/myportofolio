@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 
 from main.models import Experience, Educations, Achievements
-from main.forms import ExperienceForm
+from main.forms import ExperienceForm, AchievementForm
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
@@ -40,6 +40,16 @@ def show_experiences(request):
 
 
 def show_about(request):
+    json_response = get_achievement_json(request)
+
+    achievements = serializers.deserialize(
+        "json",
+        json_response.content.decode('utf-8'),
+    )
+
+    achievements = [achievement.object for achievement in achievements]
+    title_query = request.GET.get("title", "").strip()
+
     context = {
         "name": "Fiqhi Deski Ismail",
         "bio": (
@@ -57,9 +67,66 @@ def show_about(request):
         "SMP": Educations.objects.filter(
             institution="SMP Islam Raudhatul Jannah",
         ).first(),
-        "achievement_list": Achievements.objects.order_by("-year"),
+        "achievement_list": achievements,
+        "title_query": title_query,
     }
     return render(request, "about.html", context)
+
+def create_achievement(request):
+    form = AchievementForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "New achievement has been added!")
+        return redirect("main:show_about")
+
+    context = {
+        "name": "Fiqhi",
+        "form": form,
+    }
+
+    return render(request, "achievement_form.html", context)
+
+
+def get_achievement_json(request):
+    title_query = request.GET.get("title", "").strip()
+    achievements = Achievements.objects.all()
+
+    if title_query:
+        achievements = achievements.filter(title__icontains=title_query)
+
+    achievements = achievements.order_by("-year")
+
+    achievements_json = serializers.serialize("json", achievements)
+    return HttpResponse(achievements_json, content_type="application/json")
+
+
+def update_achievement(request, achievement_id):
+    achievement = get_object_or_404(Achievements, pk=achievement_id)
+    form = AchievementForm(request.POST or None, instance=achievement)
+    
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Achievement updated successfully!")
+        return redirect("main:show_about")
+
+    context = {
+        "name": "Fiqhi",
+        "form": form,
+        "achievement": achievement,
+    }
+
+    return render(request, "achievement_form.html", context)
+
+
+def delete_achievement(request, achievement_id):
+    achievement = get_object_or_404(Achievements, pk=achievement_id)
+
+    if request.method == "POST":
+        achievement.delete()
+        messages.success(request, "Achievement successfully deleted!")
+
+    return redirect("main:show_about")
 
 
 def create_experience(request):
@@ -74,6 +141,7 @@ def create_experience(request):
         "name": "Fiqhi",
         "form": form,
     }
+
     return render(request, "experience_form.html", context) 
 
     
@@ -110,7 +178,7 @@ def delete_experience(request, experience_id):
 
     if request.method == "POST":
         experience.delete()
-        messages.success(request, "experience berhasil dihapus!")
+        messages.success(request, "Experience successfully deleted!")
 
     return redirect("main:show_experiences")
 
