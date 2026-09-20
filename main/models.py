@@ -12,7 +12,7 @@ class Experience(models.Model):
     description = models.TextField()
     started_at = models.DateField()
     ended_at = models.DateField(blank=True, null=True)
-    skills = models.JSONField(default=list, blank=True)
+    skills = models.TextField(blank=True, default="")
 
     def __str__(self):
         return self.title
@@ -20,6 +20,10 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+    @property
+    def skills_list(self):
+        return [skill.strip() for skill in self.skills.split(',') if skill.strip()]
 
 
 class Educations(models.Model):
@@ -47,4 +51,3 @@ class Achievements(models.Model):
     organization = models.CharField(max_length=255)
     rank = models.CharField(max_length=10, choices=Rank.choices)
     description = models.TextField(blank=True)
-    display_order = models.PositiveIntegerField(default=0)

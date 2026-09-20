@@ -96,6 +96,35 @@ class TestMain(TestCase):
         self.assertContains(response, completed_experience.title)
         self.assertContains(response, "May 2026 &mdash; Present")
         self.assertContains(response, "June 2026 &mdash; July 2026")
+
+    def test_update_experience_page_prefills_existing_data(self):
+        response = self.client.get(
+            reverse("main:update_experience", args=[self.experience.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "experience_form.html")
+        self.assertContains(response, "Edit Experience")
+        self.assertContains(response, self.experience.title)
+
+    def test_update_experience(self):
+        response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Updated Experience",
+                "organization": self.experience.organization,
+                "org_logo": "",
+                "location": self.experience.location,
+                "description": self.experience.description,
+                "started_at": "2026-05-01",
+                "ended_at": "",
+                "skills": "Django, Teaching",
+            },
+        )
+
+        self.assertRedirects(response, reverse("main:show_experiences"))
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Updated Experience")
 class TestAbout(TestCase):
     def setUp(self):
         self.ui = Educations.objects.create(

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Add Experience - {{ name }}{% endblock title %}
+{% block title %}{% if experience %}Edit{% else %}Add{% endif %} Experience - {{ name }}{% endblock title %}
 {% block content %}
   <section class="px-5 py-20 md:px-10 md:py-28">
     <div class="mx-auto max-w-3xl">
-      <h1 class="mt-4 font-display text-[clamp(2.5rem,6vw,4.5rem)] leading-none font-bold">Add Experience</h1>
+      <h1 class="mt-4 font-display text-[clamp(2.5rem,6vw,4.5rem)] leading-none font-bold">{% if experience %}Edit{% else %}Add{% endif %} Experience</h1>
 
-      <form method="post" action="{% url 'main:create_experience' %}" class="mt-10 space-y-6">
+      <form method="post" action="{% if experience %}{% url 'main:update_experience' experience.id %}{% else %}{% url 'main:create_experience' %}{% endif %}" class="mt-10 space-y-6">
         {% csrf_token %}
         {% for field in form %}
           <div>
@@ -19,7 +19,7 @@
 
         <div class="flex flex-col gap-3 pt-4 sm:flex-row">
           <button type="submit" class="inline-flex items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-primary">
-            Add Experience
+            {% if experience %}Update{% else %}Add{% endif %} Experience
           </button>
           <a href="{% url 'main:show_experiences' %}" class="inline-flex items-center justify-center rounded-full border border-ink px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper">
             Cancel

@@ -36,17 +36,24 @@
             <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">{{ experience.description }}</p>
 
             <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-              {% for skill in experience.skills %}
+              {% for skill in experience.skills_list %}
                 <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">{{ skill }}</li>
               {% endfor %}
             </ul>
 
-            <form method="post" action="{% url 'main:delete_experience' experience.id %}" class="mt-6">
-              {% csrf_token %}
-              <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-dark">
-                Delete Experience
-              </button>
-            </form>
+            <div class="mt-6 flex justify-end">
+              <div class="flex w-full gap-3 sm:w-1/2">
+                <a href="{% url 'main:update_experience' experience.id %}" class="inline-flex box-border w-1/2 items-center justify-center rounded-xl border border-paper bg-paper px-5 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-primary hover:bg-primary hover:text-paper sm:py-2">
+                  Edit Experience
+                </a>
+                <form method="post" action="{% url 'main:delete_experience' experience.id %}" class="w-1/2">
+                  {% csrf_token %}
+                  <button type="submit" class="inline-flex box-border w-full items-center justify-center rounded-xl border border-transparent bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
+                    Delete Experience
+                  </button>
+                </form>
+              </div>
+            </div>
 
           </div>
         </article>

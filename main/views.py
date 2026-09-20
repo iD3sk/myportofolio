@@ -39,27 +39,6 @@ def show_experiences(request):
     return render(request, "experiences.html", context)
 
 
-def get_experience_json(request):
-    title_query = request.GET.get("title", "").strip()
-    experiences = Experience.objects.all()
-
-    if title_query:
-        experiences = experiences.filter(title__icontains=title_query)
-
-    experiences_json = serializers.serialize("json", experiences)
-    return HttpResponse(experiences_json, content_type="application/json")
-
-
-def delete_experience(request, experience_id):
-    experience = get_object_or_404(Experience, pk=experience_id)
-
-    if request.method == "POST":
-        experience.delete()
-        messages.success(request, "experience berhasil dihapus!")
-
-    return redirect("main:show_experiences")
-
-
 def show_about(request):
     context = {
         "name": "Fiqhi Deski Ismail",
@@ -78,7 +57,7 @@ def show_about(request):
         "SMP": Educations.objects.filter(
             institution="SMP Islam Raudhatul Jannah",
         ).first(),
-        "achievement_list": Achievements.objects.order_by("display_order", "-year"),
+        "achievement_list": Achievements.objects.order_by("-year"),
     }
     return render(request, "about.html", context)
 
@@ -96,4 +75,42 @@ def create_experience(request):
         "form": form,
     }
     return render(request, "experience_form.html", context) 
+
     
+def get_experience_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experiences = Experience.objects.all()
+
+    if title_query:
+        experiences = experiences.filter(title__icontains=title_query)
+
+    experiences_json = serializers.serialize("json", experiences)
+    return HttpResponse(experiences_json, content_type="application/json")
+
+
+def update_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+    form = ExperienceForm(request.POST or None, instance=experience)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Experience updated successfully!")
+        return redirect("main:show_experiences")
+
+    context = {
+        "name": "Fiqhi",
+        "form": form,
+        "experience": experience,
+    }
+
+    return render(request, "experience_form.html", context)
+
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "experience berhasil dihapus!")
+
+    return redirect("main:show_experiences")
+
