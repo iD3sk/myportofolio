@@ -1,5 +1,5 @@
 <header class="sticky top-0 right-0 left-0 z-50 px-5 py-5 md:px-8">
-  <div class="relative mx-auto flex max-w-6xl items-center justify-between">
+  <div class="relative mx-auto flex max-w-6xl md:py-2 items-center justify-between">
     <a href="{% url 'main:show_main' %}" class="font-display text-lg font-bold tracking-tight text-ink no-underline md:text-xl"> {{ name|default:"Fiqhi Deski" }} </a>
 
     <nav aria-label="Main navigation" class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
@@ -9,12 +9,22 @@
       <a class="text-sm text-ink no-underline transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
     </nav>
 
+    <div class="ml-auto hidden items-center gap-3 md:flex md:items-center md:justify-between">
+      {% if user.is_authenticated %}
+        <span class="text-xl mr-2">{{ user.username }}</span>
+        <a href="{% url 'main:logout' %}" class="inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Logout</a>
+      {% else %}
+          <a href="{% url 'main:login' %}" class="px-4 py-1.5 bg-primary text-paper rounded-xl hover:bg-primary-dark">Login</a>
+          <a href="{% url 'main:register' %}" class="px-4 py-1.5 bg-accent text-paper rounded-xl hover:bg-accent-dark" >Register</a>
+      {% endif %}
+    </div>
+
     <div class="w-14 md:hidden" aria-hidden="true"></div>
-    <button data-menu-toggle type="button" class="relative z-60 hidden size-14 place-items-center rounded-full bg-ink text-paper transition-transform duration-300 hover:scale-105 md:hidden" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-menu">
+    <button data-menu-toggle type="button" class="relative z-60 grid size-14 place-items-center transition-transform duration-300 hover:scale-105 md:hidden" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-menu">
       <span class="sr-only">Open navigation menu</span>
       <span class="flex w-5 flex-col gap-1.5" aria-hidden="true">
-        <span class="block h-px w-5 bg-paper"></span>
-        <span class="block h-px w-5 bg-paper"></span>
+        <span class="block h-px w-5 bg-ink"></span>
+        <span class="block h-px w-5 bg-ink"></span>
       </span>
     </button>
   </div>
@@ -40,6 +50,19 @@
     <a class="transition-colors hover:text-primary" href="{% url 'main:show_experiences' %}">Experience</a>
     <a class="transition-colors hover:text-primary" href="mailto:your-email@example.com">Contact</a>
   </nav>
+
+  <div class="mt-10 border-t border-paper/20 pt-6">
+    {% if user.is_authenticated %}
+      <p class="text-xs tracking-[0.15em] text-paper/50 uppercase">Signed in as</p>
+      <p class="mt-2 text-lg font-semibold">{{ user.username }}</p>
+      <a href="{% url 'main:logout' %}" class="mt-4 inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Logout</a>
+    {% else %}
+      <div class="flex gap-3">
+        <a href="{% url 'main:login' %}" class="inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-primary-dark">Login</a>
+        <a href="{% url 'main:register' %}" class="inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Register</a>
+      </div>
+    {% endif %}
+  </div>
 
   <div class="mt-auto border-t border-paper/20 pt-6">
     <p class="text-xs tracking-[0.15em] text-paper/50 uppercase">Socials</p>
