@@ -78,21 +78,17 @@
             <div class="col-span-2 border-t border-ink/20 pt-4">
               <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
               <div class="mt-6 flex justify-end">
-              <div class="flex w-full gap-3 sm:w-1/3">
-                <a href="{% url 'main:update_achievement' achievement.id %}" class="inline-flex box-border w-1/2 items-center justify-center rounded-xl border border-transparent bg-primary px-5 py-1.5 text-sm font-semibold text-paper transition-colors hover:border-primary hover:bg-primary hover:text-paper sm:py-2">
-                  Edit Achievement
-                </a>
-                <form method="post" action="{% url 'main:delete_achievement' achievement.id %}" class="w-1/2">
-                  {% csrf_token %}
-                  <button type="submit" class="inline-flex box-border w-full items-center justify-center rounded-xl border border-transparent bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
-                    Delete Achievement
-                  </button>
-                </form>
+                {% if user.is_superuser %}
+                  <div class="flex w-full gap-3 sm:w-1/3">
+                    {% url 'main:update_achievement' achievement.id as edit_url %}
+                    {% url 'main:delete_achievement' achievement.id as delete_url %}
+
+                    {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Achievement" delete_label="Delete Achievement" %}
+                  </div>
+                {% endif %}
               </div>
             </div>
-            </div>
-
-
+              
           </article>
           {% empty %}
           <h1>No achievement available</h1>

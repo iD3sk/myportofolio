@@ -41,20 +41,20 @@
               {% endfor %}
             </ul>
 
-            <div class="mt-6 flex justify-end">
-              <div class="flex w-full gap-3 sm:w-1/2">
-                <a href="{% url 'main:update_experience' experience.id %}" class="inline-flex box-border w-1/2 items-center justify-center rounded-xl border border-paper bg-paper px-5 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-primary hover:bg-primary hover:text-paper sm:py-2">
-                  Edit Experience
-                </a>
-                <form method="post" action="{% url 'main:delete_experience' experience.id %}" class="w-1/2">
-                  {% csrf_token %}
-                  <button type="submit" class="inline-flex box-border w-full items-center justify-center rounded-xl border border-transparent bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
-                    Delete Experience
-                  </button>
-                </form>
-              </div>
-            </div>
+            
+            <div class="mt-6 flex justify-between">
+              {% if user.is_authenticated %}
+                {% include "components/experience_like.html" %}
+              {% endif %}
+              {% if user.is_superuser %}
+                <div class="flex w-full gap-3 sm:w-1/2">
+                  {% url 'main:update_experience' experience.id as edit_url %}
+                  {% url 'main:delete_experience' experience.id as delete_url %}
 
+                  {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Experience" delete_label="Delete Experience" %}
+                </div>
+              {% endif %}
+            </div>
           </div>
         </article>
       {% empty %}

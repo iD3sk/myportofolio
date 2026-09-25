@@ -1,0 +1,9 @@
+<a href="{{ edit_url}}" class="inline-flex w-1/2 items-center justify-center rounded-xl bg-paper px-5 py-1.5 text-sm font-semibold text-ink transition-colors hover:bg-primary hover:text-paper sm:py-2">
+  {{ edit_label }}
+</a>
+<form method="post" action="{{ delete_url }}" class="w-1/2">
+  {% csrf_token %}
+  <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
+    {{ delete_label }}
+  </button>
+</form>

@@ -1,0 +1,12 @@
+<form method="post" action="{% url 'main:toggle_like' experience.id %}" class="inline">
+  {% csrf_token %}
+  <button
+    type="submit"
+    class="inline-flex items-center gap-[0.4rem] rounded-xl px-4 py-2 text-sm font-semibold text-paper transition-colors {% if user in experience.liked_by.all %}bg-accent hover:bg-accent-dark{% else %}bg-ink hover:bg-primary{% endif %}"
+    title="{% if user in experience.liked_by.all %}Unlike this experience{% else %}Like this experience{% endif %}"
+  >
+    <span aria-hidden="true">♥</span>
+    {% if user in experience.liked_by.all %}Unlike{% else %}Like{% endif %}
+    <span class="rounded-full bg-white/25 px-[0.4rem] py-[0.05rem] text-[0.8rem]">{{ experience.liked_by.count }}</span>
+  </button>
+</form>
