@@ -1,18 +1,16 @@
-from django.shortcuts import get_object_or_404, redirect, render
+import datetime
 
-from main.models import Experience, Educations, Achievements
-from main.forms import ExperienceForm, AchievementForm
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
-from django.contrib.auth.decorators import login_required  
-from django.core.exceptions import PermissionDenied        
-
-import datetime
+from main.forms import AchievementForm, ExperienceForm
+from main.models import Achievements, Educations, Experience
 
 
 def register(request):

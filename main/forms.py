@@ -1,6 +1,7 @@
-from django.forms import ModelForm, TextInput, Textarea, CharField, NumberInput, Select
+from django.forms import CharField, ModelForm, NumberInput, Select, Textarea, TextInput
 
-from main.models import Experience, Achievements
+from main.models import Achievements, Experience
+
 
 class ExperienceForm(ModelForm):
     skills = CharField(

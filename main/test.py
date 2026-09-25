@@ -4,7 +4,7 @@ from datetime import date
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from main.models import Experience, Achievements, Educations
+from main.models import Achievements, Educations, Experience
 from main.views import get_achievement_json
 
 

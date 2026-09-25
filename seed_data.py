@@ -8,7 +8,6 @@ django.setup()
 
 from main.models import Achievements, Educations, Experience
 
-
 Experience.objects.update_or_create(
     title="Local Volunteer",
     organization="iGV Summer Project 2026 by AIESEC",
