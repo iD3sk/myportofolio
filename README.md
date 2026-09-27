@@ -254,3 +254,44 @@ AI terkadang memberikan solusi yang terlalu umum atau mengasumsikan struktur pro
 ### Perbaikan Manual
 
 Aku memeriksa setiap saran AI terhadap materi tutorial dan struktur proyek yang sebenarnya sebelum menerapkannya. Aku menyesuaikan nama model, field, URL, view, dan template dengan bagian Experience dan Achievement milikku, lalu menguji alur create, update, delete, serta data delivery. Aku juga memeriksa hasil tampilan secara langsung dan menyesuaikan styling form serta tombol agar tetap konsisten dengan desain portofolio.
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+### Tugas 4
+
+Pada minggu ini, aku menerapkan autentikasi dan otorisasi pada data Experience dan Achievement. Pengunjung tetap dapat membaca data, pengguna yang sudah login dapat memberikan atau membatalkan like, anggota grup Editor dapat mengubah data, dan superuser dapat membuat, mengubah, serta menghapus data.
+
+Role Editor menggunakan Django Group bernama `Editor`. Group dibuat melalui `/admin/`, kemudian akun yang diberi role Editor dimasukkan ke dalam group tersebut. Semua pembatasan dijalankan kembali pada server, bukan hanya dengan menyembunyikan tombol pada template.
+
+Fitur like menggunakan relasi ManyToMany antara masing-masing model dan `User`. Endpoint like hanya menerima request POST dengan CSRF token. Endpoint JSON tetap menggunakan natural foreign keys agar tidak mengekspos ID internal pengguna.
+
+Pertanyaan reflektif Tugas 4 belum tercantum pada halaman tugas ketika bagian ini ditulis, sehingga jawaban reflektif tidak dibuat secara asumtif.
+
+## AI Disclosure
+
+### Overview
+
+Saya menggunakan Codex untuk membantu meninjau requirement, mengembangkan authorization dan fitur Like, serta menyusun pengujian. Seluruh perubahan diperiksa dan divalidasi kembali menggunakan Django system check dan test suite.
+
+### Strategi Prompting
+
+Aku menggunakan prompt yang spesifik dan terbatas pada bagian yang sedang dikerjakan. Aku memberikan requirement, struktur kode terkait, serta hasil pengujian agar AI dapat membantu meninjau authorization dan fitur Like tanpa mengubah bagian proyek di luar scope. Setiap saran kemudian dibandingkan kembali dengan instruksi tugas dan kondisi proyek sebelum digunakan.
+
+### Keterbatasan AI
+
+AI awalnya mengikuti istilah `star` secara literal dari instruksi, sedangkan implementasi proyek menggunakan istilah Like. AI juga tidak dapat memastikan hasil tampilan hanya dari test server-side, sehingga kondisi tombol dan layout tetap perlu diperiksa langsung di browser.
+
+### Perbaikan Manual
+
+Aku memilih role dan perilaku Like yang sesuai dengan struktur portofolioku, memeriksa kembali matriks hak akses, serta mempertahankan alur data dan desain yang sudah dibuat pada tugas sebelumnya. Setiap hasil divalidasi menggunakan migration check, Django system check, dan test untuk setiap role.
+
+
+Referensi log chat:
+```bash
+https://chatgpt.com/s/cx_6ab8eb70a0a481918e7ab4d28c377a33
+```
