@@ -4,11 +4,13 @@
     <div class="mx-auto max-w-280 px-6 md:px-10">
       <h2 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-bold tracking-[-0.04em]">Recent Experiences</h2>
       <p class="mt-7 max-w-3xl text-lg leading-relaxed text-muted md:text-xl">Experiences in web development, academic mentoring, program coordination, and environmental volunteering.</p>
-      <div class="mt-8 flex justify-end">
-        <a href="{% url 'main:create_experience' %}" class="inline-flex items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">
-          Add Experience
-        </a>
-      </div>
+      {% if user.is_superuser %}
+        <div class="mt-8 flex justify-end">
+          <a href="{% url 'main:create_experience' %}" class="inline-flex items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">
+            Add Experience
+          </a>
+        </div>
+      {% endif %}
       {% for experience in experience_list %}
         <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
           <div>
@@ -42,16 +44,15 @@
             </ul>
 
             
-            <div class="mt-6 flex justify-between">
-              {% if user.is_authenticated %}
-                {% include "components/experience_like.html" %}
-              {% endif %}
-              {% if user.is_superuser %}
+            <div class="mt-6 flex items-center justify-between gap-3">
+              {% url 'main:toggle_experience_like' experience.id as toggle_url %}
+              {% include "components/portfolio_like.html" with likeable=experience toggle_url=toggle_url %}
+              {% if can_update %}
                 <div class="flex w-full gap-3 sm:w-1/2">
                   {% url 'main:update_experience' experience.id as edit_url %}
                   {% url 'main:delete_experience' experience.id as delete_url %}
 
-                  {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Experience" delete_label="Delete Experience" %}
+                  {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Experience" delete_label="Delete Experience" can_edit=can_update can_delete=user.is_superuser %}
                 </div>
               {% endif %}
             </div>
