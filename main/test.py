@@ -1,7 +1,8 @@
 import json
 from datetime import date
 
-from django.test import RequestFactory, TestCase
+from django.contrib.auth.models import Group, User
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from main.models import Achievements, Educations, Experience
@@ -10,6 +11,9 @@ from main.views import get_achievement_json
 
 class TestMain(TestCase):
     def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password"
+        )
         self.experience = Experience.objects.create(
             title="Asisten Dosen PBP",
             organization="Fakultas Ilmu Komputer Universitas Indonesia",
@@ -100,6 +104,7 @@ class TestMain(TestCase):
         self.assertContains(response, "June 2026 &mdash; July 2026")
 
     def test_update_experience_page_prefills_existing_data(self):
+        self.client.force_login(self.owner)
         response = self.client.get(
             reverse("main:update_experience", args=[self.experience.id])
         )
@@ -110,6 +115,7 @@ class TestMain(TestCase):
         self.assertContains(response, self.experience.title)
 
     def test_update_experience(self):
+        self.client.force_login(self.owner)
         response = self.client.post(
             reverse("main:update_experience", args=[self.experience.id]),
             {
@@ -217,6 +223,10 @@ class TestAbout(TestCase):
 
 class TestAchievementManagement(TestCase):
     def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password"
+        )
+        self.client.force_login(self.owner)
         self.achievement = Achievements.objects.create(
             title="National Programming Contest",
             organization="Competition Organizer",
@@ -323,7 +333,7 @@ class TestAchievementManagement(TestCase):
             reverse("main:delete_achievement", args=[self.achievement.id])
         )
 
-        self.assertRedirects(response, reverse("main:show_about"))
+        self.assertEqual(response.status_code, 405)
         self.assertTrue(
             Achievements.objects.filter(pk=self.achievement.id).exists()
         )
@@ -391,3 +401,254 @@ class TestAchievementManagement(TestCase):
             [item["pk"] for item in payload],
             [str(self.achievement.id), str(older_achievement.id)],
         )
+
+
+class TestAuthorizationAndLikes(TestCase):
+    def setUp(self):
+        self.regular = User.objects.create_user(
+            username="regular", password="test-password"
+        )
+        self.editor = User.objects.create_user(
+            username="editor", password="test-password"
+        )
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password"
+        )
+        editor_group = Group.objects.create(name="Editor")
+        self.editor.groups.add(editor_group)
+
+        self.experience = Experience.objects.create(
+            title="Teaching Assistant",
+            organization="Universitas Indonesia",
+            location="Depok",
+            description="Teaching web development.",
+            started_at=date(2026, 5, 1),
+            skills="Django, Teaching",
+        )
+        self.achievement = Achievements.objects.create(
+            title="Programming Contest",
+            organization="Competition Organizer",
+            year=2025,
+            rank=Achievements.Rank.GOLD,
+            description="Won the final.",
+        )
+
+    def test_guest_is_redirected_from_every_mutating_action(self):
+        requests = [
+            ("get", reverse("main:create_experience")),
+            ("get", reverse("main:update_experience", args=[self.experience.id])),
+            ("post", reverse("main:delete_experience", args=[self.experience.id])),
+            ("post", reverse("main:toggle_experience_like", args=[self.experience.id])),
+            ("get", reverse("main:create_achievement")),
+            ("get", reverse("main:update_achievement", args=[self.achievement.id])),
+            ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
+            ("post", reverse("main:toggle_achievement_like", args=[self.achievement.id])),
+        ]
+
+        for method, url in requests:
+            with self.subTest(method=method, url=url):
+                response = getattr(self.client, method)(url)
+                self.assertEqual(response.status_code, 302)
+                self.assertTrue(response.url.startswith("/login/?next="))
+
+    def test_regular_user_cannot_create_update_or_delete(self):
+        self.client.force_login(self.regular)
+        requests = [
+            ("get", reverse("main:create_experience")),
+            ("get", reverse("main:update_experience", args=[self.experience.id])),
+            ("post", reverse("main:delete_experience", args=[self.experience.id])),
+            ("get", reverse("main:create_achievement")),
+            ("get", reverse("main:update_achievement", args=[self.achievement.id])),
+            ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
+        ]
+
+        for method, url in requests:
+            with self.subTest(method=method, url=url):
+                response = getattr(self.client, method)(url)
+                self.assertEqual(response.status_code, 403)
+
+    def test_editor_can_update_but_cannot_create_or_delete(self):
+        self.client.force_login(self.editor)
+
+        experience_response = self.client.post(
+            reverse("main:update_experience", args=[self.experience.id]),
+            {
+                "title": "Updated by Editor",
+                "organization": self.experience.organization,
+                "org_logo": "",
+                "location": self.experience.location,
+                "description": self.experience.description,
+                "started_at": "2026-05-01",
+                "ended_at": "",
+                "skills": self.experience.skills,
+            },
+        )
+        achievement_response = self.client.post(
+            reverse("main:update_achievement", args=[self.achievement.id]),
+            {
+                "title": "Achievement Updated by Editor",
+                "organization": self.achievement.organization,
+                "org_logo": "",
+                "year": self.achievement.year,
+                "rank": self.achievement.rank,
+                "description": self.achievement.description,
+            },
+        )
+
+        self.assertRedirects(experience_response, reverse("main:show_experiences"))
+        self.assertRedirects(achievement_response, reverse("main:show_about"))
+        self.experience.refresh_from_db()
+        self.achievement.refresh_from_db()
+        self.assertEqual(self.experience.title, "Updated by Editor")
+        self.assertEqual(self.achievement.title, "Achievement Updated by Editor")
+
+        forbidden_requests = [
+            ("get", reverse("main:create_experience")),
+            ("post", reverse("main:delete_experience", args=[self.experience.id])),
+            ("get", reverse("main:create_achievement")),
+            ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
+        ]
+        for method, url in forbidden_requests:
+            with self.subTest(method=method, url=url):
+                response = getattr(self.client, method)(url)
+                self.assertEqual(response.status_code, 403)
+
+    def test_superuser_has_full_crud_access(self):
+        self.client.force_login(self.owner)
+
+        self.assertEqual(self.client.get(reverse("main:create_experience")).status_code, 200)
+        self.assertEqual(
+            self.client.get(
+                reverse("main:update_experience", args=[self.experience.id])
+            ).status_code,
+            200,
+        )
+        self.assertEqual(self.client.get(reverse("main:create_achievement")).status_code, 200)
+        self.assertEqual(
+            self.client.get(
+                reverse("main:update_achievement", args=[self.achievement.id])
+            ).status_code,
+            200,
+        )
+        self.assertRedirects(
+            self.client.post(
+                reverse("main:delete_experience", args=[self.experience.id])
+            ),
+            reverse("main:show_experiences"),
+        )
+        self.assertRedirects(
+            self.client.post(
+                reverse("main:delete_achievement", args=[self.achievement.id])
+            ),
+            reverse("main:show_about"),
+        )
+
+    def test_authenticated_user_can_toggle_each_like(self):
+        self.client.force_login(self.regular)
+        cases = [
+            (
+                self.experience,
+                reverse("main:toggle_experience_like", args=[self.experience.id]),
+            ),
+            (
+                self.achievement,
+                reverse("main:toggle_achievement_like", args=[self.achievement.id]),
+            ),
+        ]
+
+        for item, url in cases:
+            with self.subTest(url=url):
+                self.client.post(url)
+                self.assertTrue(item.liked_by.filter(pk=self.regular.pk).exists())
+                self.assertEqual(item.liked_by.count(), 1)
+
+                self.client.post(url)
+                self.assertFalse(item.liked_by.filter(pk=self.regular.pk).exists())
+                self.assertEqual(item.liked_by.count(), 0)
+
+    def test_like_endpoints_only_accept_post(self):
+        self.client.force_login(self.regular)
+        urls = [
+            reverse("main:toggle_experience_like", args=[self.experience.id]),
+            reverse("main:toggle_achievement_like", args=[self.achievement.id]),
+        ]
+
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_like_endpoints_require_csrf_token(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.regular)
+        urls = [
+            reverse("main:toggle_experience_like", args=[self.experience.id]),
+            reverse("main:toggle_achievement_like", args=[self.achievement.id]),
+        ]
+
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(csrf_client.post(url).status_code, 403)
+
+    def test_action_controls_match_each_role(self):
+        experience_urls = {
+            "create": reverse("main:create_experience"),
+            "edit": reverse("main:update_experience", args=[self.experience.id]),
+            "delete": reverse("main:delete_experience", args=[self.experience.id]),
+            "like": reverse("main:toggle_experience_like", args=[self.experience.id]),
+        }
+        achievement_urls = {
+            "create": reverse("main:create_achievement"),
+            "edit": reverse("main:update_achievement", args=[self.achievement.id]),
+            "delete": reverse("main:delete_achievement", args=[self.achievement.id]),
+            "like": reverse("main:toggle_achievement_like", args=[self.achievement.id]),
+        }
+
+        for page_name, urls in [
+            ("main:show_experiences", experience_urls),
+            ("main:show_about", achievement_urls),
+        ]:
+            with self.subTest(role="guest", page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertContains(response, "0 likes")
+                for url in urls.values():
+                    self.assertNotContains(response, url)
+
+            self.client.force_login(self.regular)
+            with self.subTest(role="regular", page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertContains(response, urls["like"])
+                for action in ["create", "edit", "delete"]:
+                    self.assertNotContains(response, urls[action])
+            self.client.logout()
+
+            self.client.force_login(self.editor)
+            with self.subTest(role="editor", page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertContains(response, urls["like"])
+                self.assertContains(response, urls["edit"])
+                self.assertNotContains(response, urls["create"])
+                self.assertNotContains(response, urls["delete"])
+            self.client.logout()
+
+            self.client.force_login(self.owner)
+            with self.subTest(role="owner", page=page_name):
+                response = self.client.get(reverse(page_name))
+                for url in urls.values():
+                    self.assertContains(response, url)
+            self.client.logout()
+
+    def test_json_uses_user_natural_keys_instead_of_internal_ids(self):
+        self.experience.liked_by.add(self.regular)
+        self.achievement.liked_by.add(self.regular)
+
+        experience_payload = json.loads(
+            self.client.get(reverse("main:get_experience_json")).content
+        )
+        achievement_payload = json.loads(
+            self.client.get(reverse("main:get_achievement_json")).content
+        )
+
+        self.assertEqual(experience_payload[0]["fields"]["liked_by"], [["regular"]])
+        self.assertEqual(achievement_payload[0]["fields"]["liked_by"], [["regular"]])
+        self.assertNotIn(self.regular.pk, experience_payload[0]["fields"]["liked_by"])
+        self.assertNotIn(self.regular.pk, achievement_payload[0]["fields"]["liked_by"])
