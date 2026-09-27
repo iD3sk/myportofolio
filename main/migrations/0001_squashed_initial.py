@@ -6,27 +6,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
-    replaces = [('main', '0001_initial'), ('main', '0002_mahasiswa_remove_experience_category_and_more'), ('main', '0003_delete_mahasiswa'), ('main', '0004_experience_location'), ('main', '0005_rename_organization_logo_experience_org_logo')]
+    replaces = [
+        ("main", "0001_initial"),
+        ("main", "0002_mahasiswa_remove_experience_category_and_more"),
+        ("main", "0003_delete_mahasiswa"),
+        ("main", "0004_experience_location"),
+        ("main", "0005_rename_organization_logo_experience_org_logo"),
+    ]
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Experience',
+            name="Experience",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField()),
-                ('started_at', models.DateField()),
-                ('ended_at', models.DateField(blank=True, null=True)),
-                ('organization', models.CharField(default='', max_length=255)),
-                ('org_logo', models.CharField(blank=True, max_length=255)),
-                ('skills', models.JSONField(blank=True, default=list)),
-                ('location', models.CharField(max_length=255, null=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField()),
+                ("started_at", models.DateField()),
+                ("ended_at", models.DateField(blank=True, null=True)),
+                ("organization", models.CharField(default="", max_length=255)),
+                ("org_logo", models.CharField(blank=True, max_length=255)),
+                ("skills", models.JSONField(blank=True, default=list)),
+                ("location", models.CharField(max_length=255, null=True)),
             ],
         ),
     ]

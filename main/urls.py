@@ -9,19 +9,42 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("login/", views.login_user, name="login"),
     path("logout/", views.logout_user, name="logout"),
-
     path("experiences/add/", views.create_experience, name="create_experience"),
     path("experiences/", views.show_experiences, name="show_experiences"),
-    path("experiences/<uuid:experience_id>/edit/", views.update_experience,name="update_experience",),
-    path("experiences/<uuid:experience_id>/delete/", views.delete_experience, name="delete_experience"),
+    path(
+        "experiences/<uuid:experience_id>/edit/",
+        views.update_experience,
+        name="update_experience",
+    ),
+    path(
+        "experiences/<uuid:experience_id>/delete/",
+        views.delete_experience,
+        name="delete_experience",
+    ),
     path("api/experiences/", views.get_experience_json, name="get_experience_json"),
-
     path("about/", views.show_about, name="show_about"),
     path("api/achievement/", views.get_achievement_json, name="get_achievement_json"),
-    path("about/achievements/add/", views.create_achievement, name="create_achievement"),
-    path("about/achievements/<uuid:achievement_id>/edit/", views.update_achievement, name="update_achievement"),
-    path("about/achievements/<uuid:achievement_id>/delete/", views.delete_achievement, name="delete_achievement"),
-
-    path("experiences/<uuid:experience_id>/like/", views.toggle_experience_like, name="toggle_experience_like"),
-    path("about/achievements/<uuid:achievement_id>/like/", views.toggle_achievement_like, name="toggle_achievement_like"),
+    path(
+        "about/achievements/add/", views.create_achievement, name="create_achievement"
+    ),
+    path(
+        "about/achievements/<uuid:achievement_id>/edit/",
+        views.update_achievement,
+        name="update_achievement",
+    ),
+    path(
+        "about/achievements/<uuid:achievement_id>/delete/",
+        views.delete_achievement,
+        name="delete_achievement",
+    ),
+    path(
+        "experiences/<uuid:experience_id>/like/",
+        views.toggle_experience_like,
+        name="toggle_experience_like",
+    ),
+    path(
+        "about/achievements/<uuid:achievement_id>/like/",
+        views.toggle_achievement_like,
+        name="toggle_achievement_like",
+    ),
 ]

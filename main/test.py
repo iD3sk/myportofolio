@@ -53,9 +53,7 @@ class TestMain(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
-        self.assertQuerySetEqual(
-            response.context["experience_list"], [self.experience]
-        )
+        self.assertQuerySetEqual(response.context["experience_list"], [self.experience])
         self.assertContains(response, "<article", count=1)
         self.assertContains(response, self.experience.title)
         self.assertContains(response, self.experience.organization)
@@ -254,35 +252,25 @@ class TestAchievementManagement(TestCase):
         self.assertContains(response, 'name="rank"')
 
     def test_create_achievement_with_valid_data(self):
-        response = self.client.post(
-            reverse("main:create_achievement"), self.valid_data
-        )
+        response = self.client.post(reverse("main:create_achievement"), self.valid_data)
 
         self.assertRedirects(response, reverse("main:show_about"))
-        created_achievement = Achievements.objects.get(
-            title=self.valid_data["title"]
-        )
+        created_achievement = Achievements.objects.get(title=self.valid_data["title"])
         self.assertEqual(created_achievement.year, self.valid_data["year"])
         self.assertEqual(created_achievement.rank, self.valid_data["rank"])
-        self.assertEqual(
-            created_achievement.org_logo, self.valid_data["org_logo"]
-        )
+        self.assertEqual(created_achievement.org_logo, self.valid_data["org_logo"])
 
     def test_create_achievement_with_invalid_data_shows_errors(self):
         invalid_data = self.valid_data | {"title": "", "year": "not-a-year"}
 
-        response = self.client.post(
-            reverse("main:create_achievement"), invalid_data
-        )
+        response = self.client.post(reverse("main:create_achievement"), invalid_data)
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "achievement_form.html")
         self.assertFormError(
             response.context["form"], "title", "This field is required."
         )
-        self.assertFormError(
-            response.context["form"], "year", "Enter a whole number."
-        )
+        self.assertFormError(response.context["form"], "year", "Enter a whole number.")
         self.assertFalse(
             Achievements.objects.filter(
                 organization=self.valid_data["organization"]
@@ -334,9 +322,7 @@ class TestAchievementManagement(TestCase):
         )
 
         self.assertEqual(response.status_code, 405)
-        self.assertTrue(
-            Achievements.objects.filter(pk=self.achievement.id).exists()
-        )
+        self.assertTrue(Achievements.objects.filter(pk=self.achievement.id).exists())
 
     def test_delete_achievement_with_post(self):
         response = self.client.post(
@@ -344,9 +330,7 @@ class TestAchievementManagement(TestCase):
         )
 
         self.assertRedirects(response, reverse("main:show_about"))
-        self.assertFalse(
-            Achievements.objects.filter(pk=self.achievement.id).exists()
-        )
+        self.assertFalse(Achievements.objects.filter(pk=self.achievement.id).exists())
 
     def test_update_and_delete_nonexistent_achievement_return_404(self):
         missing_id = "00000000-0000-0000-0000-000000000000"
@@ -369,15 +353,11 @@ class TestAchievementManagement(TestCase):
             rank=Achievements.Rank.FINALIST,
         )
 
-        response = self.client.get(
-            reverse("main:show_about"), {"title": "science"}
-        )
+        response = self.client.get(reverse("main:show_about"), {"title": "science"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["title_query"], "science")
-        self.assertEqual(
-            response.context["achievement_list"], [matching_achievement]
-        )
+        self.assertEqual(response.context["achievement_list"], [matching_achievement])
         self.assertContains(response, matching_achievement.title)
         self.assertNotContains(response, self.achievement.title)
 
@@ -389,9 +369,7 @@ class TestAchievementManagement(TestCase):
             rank=Achievements.Rank.FINALIST,
         )
 
-        request = RequestFactory().get(
-            "/api/achievement/", {"title": "programming"}
-        )
+        request = RequestFactory().get("/api/achievement/", {"title": "programming"})
         response = get_achievement_json(request)
         payload = json.loads(response.content)
 
@@ -442,7 +420,10 @@ class TestAuthorizationAndLikes(TestCase):
             ("get", reverse("main:create_achievement")),
             ("get", reverse("main:update_achievement", args=[self.achievement.id])),
             ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
-            ("post", reverse("main:toggle_achievement_like", args=[self.achievement.id])),
+            (
+                "post",
+                reverse("main:toggle_achievement_like", args=[self.achievement.id]),
+            ),
         ]
 
         for method, url in requests:
@@ -516,14 +497,18 @@ class TestAuthorizationAndLikes(TestCase):
     def test_superuser_has_full_crud_access(self):
         self.client.force_login(self.owner)
 
-        self.assertEqual(self.client.get(reverse("main:create_experience")).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("main:create_experience")).status_code, 200
+        )
         self.assertEqual(
             self.client.get(
                 reverse("main:update_experience", args=[self.experience.id])
             ).status_code,
             200,
         )
-        self.assertEqual(self.client.get(reverse("main:create_achievement")).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("main:create_achievement")).status_code, 200
+        )
         self.assertEqual(
             self.client.get(
                 reverse("main:update_achievement", args=[self.achievement.id])

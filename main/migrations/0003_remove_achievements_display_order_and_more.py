@@ -4,24 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('main', '0002_achievements_educations'),
+        ("main", "0002_achievements_educations"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='achievements',
-            name='display_order',
+            model_name="achievements",
+            name="display_order",
         ),
         migrations.AlterField(
-            model_name='achievements',
-            name='rank',
-            field=models.CharField(choices=[('finalist', 'Finalist'), ('bronze', 'Bronze'), ('silver', 'Silver'), ('gold', 'Gold')], max_length=10),
+            model_name="achievements",
+            name="rank",
+            field=models.CharField(
+                choices=[
+                    ("finalist", "Finalist"),
+                    ("bronze", "Bronze"),
+                    ("silver", "Silver"),
+                    ("gold", "Gold"),
+                ],
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='experience',
-            name='skills',
-            field=models.TextField(blank=True, default=''),
+            model_name="experience",
+            name="skills",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

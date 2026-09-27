@@ -22,14 +22,14 @@ class Experience(models.Model):
 
     def __str__(self):
         return self.title
-    
+
     @property
     def is_ongoing(self):
         return self.ended_at is None
 
     @property
     def skills_list(self):
-        return [skill.strip() for skill in self.skills.split(',') if skill.strip()]
+        return [skill.strip() for skill in self.skills.split(",") if skill.strip()]
 
 
 class Educations(models.Model):

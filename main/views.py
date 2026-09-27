@@ -58,21 +58,26 @@ def logout_user(request):
     logout(request)
     response = redirect("main:show_main")
     response.delete_cookie("last_login")
-    
+
     return response
 
 
 def show_main(request):
-    last_login = request.COOKIES.get('last_login', 'Belum ada sesi login / Cookie tidak ditemukan')
+    last_login = request.COOKIES.get(
+        "last_login", "Belum ada sesi login / Cookie tidak ditemukan"
+    )
 
     context = {
         "name": "Fiqhi Deski Ismail",
         "npm": "2506534245",
         "study_program": "S1 Ilmu Komputer",
         "bio": (
-            "CS student at Universitas Indonesia for longer than " "planned, now a familiar (and slightly dreaded) face " "among Fasilkom students as a teaching assistant " "across several courses. "
+            "CS student at Universitas Indonesia for longer than "
+            "planned, now a familiar (and slightly dreaded) face "
+            "among Fasilkom students as a teaching assistant "
+            "across several courses. "
         ),
-        "last_login": last_login
+        "last_login": last_login,
     }
     return render(request, "index.html", context)
 
@@ -82,7 +87,7 @@ def show_experiences(request):
 
     experiences = serializers.deserialize(
         "json",
-        json_response.content.decode('utf-8'),
+        json_response.content.decode("utf-8"),
     )
 
     experiences = [experience.object for experience in experiences]
@@ -103,7 +108,7 @@ def show_about(request):
 
     achievements = serializers.deserialize(
         "json",
-        json_response.content.decode('utf-8'),
+        json_response.content.decode("utf-8"),
     )
 
     achievements = [achievement.object for achievement in achievements]
@@ -137,7 +142,7 @@ def show_about(request):
 def create_achievement(request):
     if not request.user.is_superuser:
         raise PermissionDenied
-    
+
     form = AchievementForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -167,14 +172,15 @@ def get_achievement_json(request):
     )
     return HttpResponse(achievements_json, content_type="application/json")
 
+
 @login_required(login_url="/login/")
 def update_achievement(request, achievement_id):
     if not can_update_portfolio(request.user):
         raise PermissionDenied
-    
+
     achievement = get_object_or_404(Achievements, pk=achievement_id)
     form = AchievementForm(request.POST or None, instance=achievement)
-    
+
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Achievement updated successfully!")
@@ -188,12 +194,13 @@ def update_achievement(request, achievement_id):
 
     return render(request, "achievement_form.html", context)
 
+
 @login_required(login_url="/login/")
 @require_POST
 def delete_achievement(request, achievement_id):
     if not request.user.is_superuser:
         raise PermissionDenied
-    
+
     achievement = get_object_or_404(Achievements, pk=achievement_id)
 
     achievement.delete()
@@ -206,7 +213,7 @@ def delete_achievement(request, achievement_id):
 def create_experience(request):
     if not request.user.is_superuser:
         raise PermissionDenied
-    
+
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -219,9 +226,9 @@ def create_experience(request):
         "form": form,
     }
 
-    return render(request, "experience_form.html", context) 
+    return render(request, "experience_form.html", context)
 
-    
+
 def get_experience_json(request):
     title_query = request.GET.get("title", "").strip()
     experiences = Experience.objects.all()
@@ -229,7 +236,9 @@ def get_experience_json(request):
     if title_query:
         experiences = experiences.filter(title__icontains=title_query)
 
-    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True)
+    experiences_json = serializers.serialize(
+        "json", experiences, use_natural_foreign_keys=True
+    )
     return HttpResponse(experiences_json, content_type="application/json")
 
 
@@ -237,7 +246,7 @@ def get_experience_json(request):
 def update_experience(request, experience_id):
     if not can_update_portfolio(request.user):
         raise PermissionDenied
-    
+
     experience = get_object_or_404(Experience, pk=experience_id)
     form = ExperienceForm(request.POST or None, instance=experience)
 
@@ -260,14 +269,13 @@ def update_experience(request, experience_id):
 def delete_experience(request, experience_id):
     if not request.user.is_superuser:
         raise PermissionDenied
-    
+
     experience = get_object_or_404(Experience, pk=experience_id)
 
     experience.delete()
     messages.success(request, "Experience successfully deleted!")
 
     return redirect("main:show_experiences")
-
 
 
 @login_required(login_url="/login/")

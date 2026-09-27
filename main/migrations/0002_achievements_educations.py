@@ -4,35 +4,60 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('main', '0001_squashed_initial'),
+        ("main", "0001_squashed_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Achievements',
+            name="Achievements",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('year', models.IntegerField()),
-                ('organization', models.CharField(max_length=255)),
-                ('rank', models.CharField(choices=[('bronze', 'Bronze'), ('silver', 'Silver'), ('gold', 'Gold')], max_length=10)),
-                ('description', models.TextField(blank=True)),
-                ('display_order', models.PositiveIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("year", models.IntegerField()),
+                ("organization", models.CharField(max_length=255)),
+                (
+                    "rank",
+                    models.CharField(
+                        choices=[
+                            ("bronze", "Bronze"),
+                            ("silver", "Silver"),
+                            ("gold", "Gold"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("description", models.TextField(blank=True)),
+                ("display_order", models.PositiveIntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='Educations',
+            name="Educations",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('level', models.CharField(blank=True, max_length=255)),
-                ('institution', models.CharField(max_length=255)),
-                ('program', models.CharField(blank=True, max_length=255)),
-                ('started_at', models.PositiveIntegerField()),
-                ('ended_at', models.PositiveIntegerField(blank=True, null=True)),
-                ('description', models.TextField(blank=True)),
-                ('display_order', models.IntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("level", models.CharField(blank=True, max_length=255)),
+                ("institution", models.CharField(max_length=255)),
+                ("program", models.CharField(blank=True, max_length=255)),
+                ("started_at", models.PositiveIntegerField()),
+                ("ended_at", models.PositiveIntegerField(blank=True, null=True)),
+                ("description", models.TextField(blank=True)),
+                ("display_order", models.IntegerField(default=0)),
             ],
         ),
     ]
