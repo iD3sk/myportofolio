@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -8,9 +6,19 @@ from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from main.forms import AchievementForm, ExperienceForm
 from main.models import Achievements, Educations, Experience
+
+
+def is_editor(user):
+    return user.is_authenticated and user.groups.filter(name="Editor").exists()
+
+
+def can_update_portfolio(user):
+    return user.is_superuser or is_editor(user)
 
 
 def register(request):
@@ -32,10 +40,11 @@ def login_user(request):
     form = AuthenticationForm(request, data=request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        user = form.get_user()
         login(request, form.get_user())
-        response =  redirect("main:show_main")
-        response.set_cookie('last_login', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        response = redirect("main:show_main")
+        response.set_cookie(
+            "last_login", timezone.localtime().strftime("%Y-%m-%d %H:%M:%S")
+        )
         return response
 
     context = {
@@ -83,6 +92,7 @@ def show_experiences(request):
         "name": "Fiqhi Deski Ismail",
         "experience_list": experiences,
         "title_query": title_query,
+        "can_update": can_update_portfolio(request.user),
     }
 
     return render(request, "experiences.html", context)
@@ -118,6 +128,7 @@ def show_about(request):
         ).first(),
         "achievement_list": achievements,
         "title_query": title_query,
+        "can_update": can_update_portfolio(request.user),
     }
     return render(request, "about.html", context)
 
@@ -151,13 +162,15 @@ def get_achievement_json(request):
 
     achievements = achievements.order_by("-year")
 
-    achievements_json = serializers.serialize("json", achievements)
+    achievements_json = serializers.serialize(
+        "json", achievements, use_natural_foreign_keys=True
+    )
     return HttpResponse(achievements_json, content_type="application/json")
 
 @login_required(login_url="/login/")
 def update_achievement(request, achievement_id):
-    if not request.user.is_superuser:
-      raise PermissionDenied
+    if not can_update_portfolio(request.user):
+        raise PermissionDenied
     
     achievement = get_object_or_404(Achievements, pk=achievement_id)
     form = AchievementForm(request.POST or None, instance=achievement)
@@ -176,15 +189,15 @@ def update_achievement(request, achievement_id):
     return render(request, "achievement_form.html", context)
 
 @login_required(login_url="/login/")
+@require_POST
 def delete_achievement(request, achievement_id):
     if not request.user.is_superuser:
         raise PermissionDenied
     
     achievement = get_object_or_404(Achievements, pk=achievement_id)
 
-    if request.method == "POST":
-        achievement.delete()
-        messages.success(request, "Achievement successfully deleted!")
+    achievement.delete()
+    messages.success(request, "Achievement successfully deleted!")
 
     return redirect("main:show_about")
 
@@ -222,7 +235,7 @@ def get_experience_json(request):
 
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):
-    if not request.user.is_superuser:
+    if not can_update_portfolio(request.user):
         raise PermissionDenied
     
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -243,29 +256,41 @@ def update_experience(request, experience_id):
 
 
 @login_required(login_url="/login/")
+@require_POST
 def delete_experience(request, experience_id):
     if not request.user.is_superuser:
         raise PermissionDenied
     
     experience = get_object_or_404(Experience, pk=experience_id)
 
-    if request.method == "POST":
-        experience.delete()
-        messages.success(request, "Experience successfully deleted!")
+    experience.delete()
+    messages.success(request, "Experience successfully deleted!")
 
     return redirect("main:show_experiences")
 
 
 
-# Tanpa cek is_superuser: semua akun yang sudah login boleh memberi like
 @login_required(login_url="/login/")
-def toggle_like(request, experience_id):
+@require_POST
+def toggle_experience_like(request, experience_id):
     experience = get_object_or_404(Experience, pk=experience_id)
 
-    if request.method == "POST":
-        if request.user in experience.liked_by.all():
-            experience.liked_by.remove(request.user)
-        else:
-            experience.liked_by.add(request.user)
+    if experience.liked_by.filter(pk=request.user.pk).exists():
+        experience.liked_by.remove(request.user)
+    else:
+        experience.liked_by.add(request.user)
 
     return redirect("main:show_experiences")
+
+
+@login_required(login_url="/login/")
+@require_POST
+def toggle_achievement_like(request, achievement_id):
+    achievement = get_object_or_404(Achievements, pk=achievement_id)
+
+    if achievement.liked_by.filter(pk=request.user.pk).exists():
+        achievement.liked_by.remove(request.user)
+    else:
+        achievement.liked_by.add(request.user)
+
+    return redirect("main:show_about")

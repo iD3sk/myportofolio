@@ -17,9 +17,11 @@ urlpatterns = [
     path("api/experiences/", views.get_experience_json, name="get_experience_json"),
 
     path("about/", views.show_about, name="show_about"),
+    path("api/achievement/", views.get_achievement_json, name="get_achievement_json"),
     path("about/achievements/add/", views.create_achievement, name="create_achievement"),
     path("about/achievements/<uuid:achievement_id>/edit/", views.update_achievement, name="update_achievement"),
     path("about/achievements/<uuid:achievement_id>/delete/", views.delete_achievement, name="delete_achievement"),
 
-    path("experiences/<uuid:experience_id>/like/", views.toggle_like, name="toggle_like"),
+    path("experiences/<uuid:experience_id>/like/", views.toggle_experience_like, name="toggle_experience_like"),
+    path("about/achievements/<uuid:achievement_id>/like/", views.toggle_achievement_like, name="toggle_achievement_like"),
 ]

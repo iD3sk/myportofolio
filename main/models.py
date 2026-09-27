@@ -60,3 +60,8 @@ class Achievements(models.Model):
     org_logo = models.CharField(null=True, blank=True, max_length=255)
     rank = models.CharField(max_length=10, choices=Rank.choices)
     description = models.TextField(blank=True)
+    liked_by = models.ManyToManyField(
+        User,
+        related_name="liked_achievements",
+        blank=True,
+    )
