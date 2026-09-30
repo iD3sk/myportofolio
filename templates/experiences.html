@@ -1,72 +1,351 @@
-{% extends "base.html" %} {% block title %}{{ name }} - Experiences{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ name }} - Experiences{% endblock %}
 {% block content %}
   <section id="experience" class="py-20 md:py-28">
     <div class="mx-auto max-w-280 px-6 md:px-10">
       <h2 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.95] font-bold tracking-[-0.04em]">Recent Experiences</h2>
       <p class="mt-7 max-w-3xl text-lg leading-relaxed text-muted md:text-xl">Experiences in web development, academic mentoring, program coordination, and environmental volunteering.</p>
+
       {% if user.is_superuser %}
         <div class="mt-8 flex justify-end">
-          <a href="{% url 'main:create_experience' %}" class="inline-flex items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">
-            Add Experience
-          </a>
+          {% comment %} <a href="{% url 'main:create_experience' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">Add Experience</a> {% endcomment %}
+          <button type="button"
+            class="button-dark button-lg"
+            popovertarget="add-experience-modal">
+            <span aria-hidden="true">Add Experience</span>
+          </button>
         </div>
       {% endif %}
-      {% for experience in experience_list %}
-        <article class="mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]">
-          <div>
-            {% if experience.is_ongoing %}
-              <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">{{ experience.started_at|date:"F Y" }} &mdash; Present</p>
-            {% else %}
-              <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">{{ experience.started_at|date:"F Y" }} &mdash; {{ experience.ended_at|date:"F Y" }}</p>
-            {% endif %}
-            <p class="mt-2 text-sm text-paper/60">{{ experience.location }}</p>
-          </div>
 
-          <div>
-            <div class="flex items-start gap-4">
-              <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold" aria-hidden="true">
-                {% if experience.org_logo %}
-                  <img src="{{ experience.org_logo }}" alt="" />
-                {% endif %}
-              </div>
-              <div>
-                <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">{{ experience.title }}</h3>
-                <p class="mt-1 text-base text-paper/70 md:text-lg">{{ experience.organization }}</p>
-              </div>
-            </div>
+      <form id="experience-search-form" role="search" class="mt-8 flex flex-col gap-3 sm:flex-row" action="{% url 'main:show_experiences' %}" method="get">
+        <label for="experience-search" class="sr-only">Search experiences by title</label>
+        <input id="experience-search" name="title" type="search" value="{{ title_query }}" placeholder="Search experiences by title" class="min-h-11 flex-1 rounded-xl border border-line bg-white px-4 py-2 text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+        <button type="submit" class="button button-dark">Search</button>
+      </form>
 
-            <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">{{ experience.description }}</p>
-
-            <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">
-              {% for skill in experience.skills_list %}
-                <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">{{ skill }}</li>
-              {% endfor %}
-            </ul>
-
-            
-            <div class="mt-6 flex items-center justify-between gap-3">
-              {% url 'main:toggle_experience_like' experience.id as toggle_url %}
-              {% include "components/portfolio_like.html" with likeable=experience toggle_url=toggle_url %}
-              {% if can_update %}
-                <div class="flex w-full gap-3 sm:w-1/2">
-                  {% url 'main:update_experience' experience.id as edit_url %}
-                  {% url 'main:delete_experience' experience.id as delete_url %}
-
-                  {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Experience" delete_label="Delete Experience" can_edit=can_update can_delete=user.is_superuser %}
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </article>
-      {% empty %}
-        <p class="mt-12 text-muted">
-          {% if title_query %}
-            No experiences found for "{{ title_query }}".
-          {% else %}
-            No experiences have been added yet.
-          {% endif %}
-        </p>
-      {% endfor %}
+      <p id="experience-loading" class="mt-12 text-muted" role="status">Loading experiences…</p>
+      <div id="experience-error" class="mt-12 rounded-xl border border-line bg-white p-5" role="alert" hidden>
+        <p class="text-muted">Could not load experiences. Please try again.</p>
+        <button id="experience-retry" type="button" class="button button-dark button-compact mt-4">Retry</button>
+      </div>
+      <p id="experience-empty" class="mt-12 text-muted" hidden>No experiences match your search.</p>
+      <div id="experience-grid" class="mt-12" aria-live="polite"></div>
     </div>
   </section>
+
+  {% if user.is_superuser %}
+    {% include "components/experience_modal_form.html" %}
+  {% endif %}
+
+  <script>
+    const EXPERIENCE_ENDPOINT = "{% url 'main:get_experience_json' %}";
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const CAN_UPDATE = "{{ can_update|yesno:'true,false' }}" === "true";
+    const CAN_DELETE = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const CSRF_TOKEN = "{{ csrf_token }}";
+    const EXPERIENCE_ID_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
+    const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
+    const experienceForm = document.getElementById("experience-form");
+    const experienceSearchForm = document.getElementById("experience-search-form");
+    const experienceSearchInput = document.getElementById("experience-search");
+    const experienceLoading = document.getElementById("experience-loading");
+    const experienceError = document.getElementById("experience-error");
+    const experienceEmpty = document.getElementById("experience-empty");
+    const experienceGrid = document.getElementById("experience-grid");
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;
+    let experienceAbortController;
+
+    function setExperienceState(state) {
+      const hasCards = experienceGrid.children.length > 0;
+
+      experienceLoading.hidden = state !== "loading";
+      experienceError.hidden = state !== "error";
+      experienceEmpty.hidden = state !== "empty";
+      experienceGrid.hidden =
+        state !== "results" && !(state === "loading" && hasCards);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(
+        /[&<>"']/g,
+        (character) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[character],
+      );
+    }
+
+    function formatMonthYear(value) {
+      if (!value) return "Present";
+      const [year, month] = value.split("-").map(Number);
+      return new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
+    }
+
+    function buildExperienceCard(item) {
+      const experience = item.fields;
+      const experienceId = item.pk;
+      const escapedId = escapeHtml(experienceId);
+      const likeUrl = "{% url 'main:toggle_experience_like' '00000000-0000-0000-0000-000000000000' %}".replace(EXPERIENCE_ID_PLACEHOLDER, escapedId);
+      const editUrl = "{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}".replace(EXPERIENCE_ID_PLACEHOLDER, escapedId);
+      const deleteUrl = "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}".replace(EXPERIENCE_ID_PLACEHOLDER, escapedId);
+      const csrfInput = `
+        <input
+          type="hidden"
+          name="csrfmiddlewaretoken"
+          value="${escapeHtml(CSRF_TOKEN)}"
+        >
+      `;
+      const skillsHtml = (experience.skills || "")
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean)
+        .map(
+          (skill) => `
+            <li class="border border-paper/30 px-3 py-1 text-sm text-paper/80">
+              ${escapeHtml(skill)}
+            </li>
+          `,
+        )
+        .join("");
+      const logoHtml = experience.org_logo ? `<img src="${escapeHtml(experience.org_logo)}" alt="">` : "";
+      const likeButtonClass = experience.is_liked ? "" : "button-dark";
+      const likeHtml = IS_AUTHENTICATED
+        ?
+        `
+          <form data-like-form method="post" action="${likeUrl}" class="inline">
+            ${csrfInput}
+            <button
+              type="submit"
+              class="button button-compact ${likeButtonClass} gap-[0.4rem]"
+              title="${experience.is_liked ? "Unlike this item" : "Like this item"}"
+            >
+              <span aria-hidden="true">&hearts;</span>
+              <span data-like-label>${experience.is_liked ? "Unlike" : "Like"}</span>
+              <span data-like-count class="rounded-full bg-white/25 px-[0.4rem] py-[0.05rem] text-[0.8rem]">${Number(experience.like_count) || 0}</span>
+            </button>
+          </form>
+        `
+        : `
+          <span
+            class="inline-flex items-center gap-[0.4rem] rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold text-muted"
+            title="Login to like this item"
+          >
+            <span aria-hidden="true">&hearts;</span>
+            ${Number(experience.like_count) || 0}
+            like${Number(experience.like_count) === 1 ? "" : "s"}
+          </span>
+        `;
+      const editHtml = CAN_UPDATE
+        ? `
+          <a href="${editUrl}" class="button button-secondary button-small flex-1">
+            Edit Experience
+          </a>
+        `
+        : "";
+      const deleteHtml = CAN_DELETE
+        ? `
+          <form method="post" action="${deleteUrl}" class="flex-1">
+            ${csrfInput}
+            <button type="submit" class="button button-small w-full">
+              Delete Experience
+            </button>
+          </form>
+        `
+        : "";
+      const crudHtml = CAN_UPDATE
+        ? `
+          <div class="flex w-full gap-3 sm:w-1/2">
+            ${editHtml}
+            ${deleteHtml}
+          </div>
+        `
+        : "";
+
+      const card = document.createElement("article");
+      card.className = "mt-12 grid gap-8 rounded-xl border-2 border-ink bg-secondary p-6 text-paper shadow-[8px_8px_0_var(--color-accent)] md:mt-14 md:grid-cols-[0.32fr_1fr] md:gap-12 md:p-10 md:shadow-[12px_12px_0_var(--color-accent)]";
+      card.innerHTML = `
+        <div>
+          <div class="grid size-14 shrink-0 place-items-center border border-paper/30 font-display text-sm font-bold mb-6" aria-hidden="true">${logoHtml}</div>
+          <p class="font-display text-sm font-semibold tracking-[0.08em] uppercase">${escapeHtml(formatMonthYear(experience.started_at))} &mdash; ${escapeHtml(formatMonthYear(experience.ended_at))}</p>
+          <p class="mt-2 text-sm text-paper/60">${escapeHtml(experience.location)}</p>
+        </div>
+
+        <div>
+          <div class="items-start gap-4">
+            <div>
+              <h3 class="font-display text-2xl leading-tight font-bold md:text-3xl">${escapeHtml(experience.title)}</h3>
+              <p class="mt-1 text-base text-paper/70 md:text-lg">${escapeHtml(experience.organization)}</p>
+            </div>
+          </div>
+
+          <p class="mt-6 max-w-3xl text-base leading-relaxed text-paper/80 md:text-lg">${escapeHtml(experience.description)}</p>
+          <ul class="mt-5 flex flex-wrap gap-2" aria-label="Areas of work">${skillsHtml}</ul>
+
+          <div class="mt-6 flex items-center justify-between gap-3">
+            ${likeHtml}
+            ${crudHtml}
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    async function fetchExperiences(searchQuery = "") {
+      experienceAbortController?.abort();
+      experienceAbortController = new AbortController();
+      setExperienceState("loading");
+
+      const url = new URL(EXPERIENCE_ENDPOINT, window.location.origin);
+      if (searchQuery) url.searchParams.set("title", searchQuery);
+
+      try {
+        const response = await fetch(url, {
+          headers: { Accept: "application/json" },
+          signal: experienceAbortController.signal,
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch experiences");
+
+        const experiences = await response.json();
+        experienceGrid.replaceChildren();
+        if (experiences.length === 0) {
+          experienceEmpty.textContent = searchQuery
+            ? `No experiences found for “${searchQuery}”.`
+            : "No experiences have been added yet.";
+          setExperienceState("empty");
+          return;
+        }
+
+        experiences.forEach((item) => experienceGrid.appendChild(buildExperienceCard(item)));
+        setExperienceState("results");
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("Error loading experiences:", error);
+        setExperienceState("error");
+      }
+    }
+
+    function searchExperience() {
+      fetchExperiences(experienceSearchInput.value.trim());
+    }
+
+    experienceSearchInput.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+
+      searchDebounceTimer = setTimeout(() => {
+        searchExperience();
+      }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    experienceSearchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      clearTimeout(searchDebounceTimer);
+      searchExperience();
+    });
+
+    document.getElementById("experience-retry").addEventListener("click", () => {
+      fetchExperiences(experienceSearchInput.value.trim());
+    });
+
+    experienceGrid.addEventListener("submit", async (event) => {
+      const likeForm = event.target.closest("form[data-like-form]");
+      if (!likeForm) return;
+
+      event.preventDefault();
+
+      const likeButton = likeForm.querySelector("button[type='submit']");
+      const likeLabel = likeForm.querySelector("[data-like-label]");
+      const likeCount = likeForm.querySelector("[data-like-count]");
+      if (!likeButton || !likeLabel || !likeCount) return;
+
+      likeButton.disabled = true;
+
+      try {
+        const response = await fetch(likeForm.action, {
+          method: "POST",
+          body: new FormData(likeForm),
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Failed to update Like status");
+
+        const result = await response.json();
+        likeLabel.textContent = result.is_liked ? "Unlike" : "Like";
+        likeCount.textContent = result.like_count;
+        likeButton.title = result.is_liked ? "Unlike this item" : "Like this item";
+        likeButton.classList.toggle("button-dark", !result.is_liked);
+      } catch (error) {
+        console.error("Error updating Like status:", error);
+      } finally {
+        likeButton.disabled = false;
+      }
+    });
+
+    function closeExperienceModal() {
+      document.getElementById("add-experience-modal").hidePopover();
+    }
+
+    async function addExperience(event) {
+      event.preventDefault();
+
+      const submitButton = experienceForm.querySelector("button[type='submit']");
+      if (!submitButton) return;
+
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: new FormData(experienceForm),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+          experienceForm.reset();
+          closeExperienceModal();
+          showToast("Success", "New experience has been added!", "success");
+          fetchExperiences(experienceSearchInput.value.trim());
+        } else {
+          const errorMessages = result.errors
+            ? Object.values(result.errors)
+                .flat()
+                .map((error) => error.message)
+            : [
+                result.message ||
+                  `An error occurred (status ${response.status}).`,
+              ];
+          showToast(
+            "Failed to add experience",
+            errorMessages.join(" "),
+            "error",
+          );
+        }
+      } catch (error) {
+        console.error("Error adding experience:", error);
+        showToast(
+          "Failed to add experience",
+          "Could not connect to the server. Please try again.",
+          "error",
+        );
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    if (experienceForm) {
+      experienceForm.addEventListener("submit", addExperience);
+    }
+
+    fetchExperiences(experienceSearchInput.value.trim());
+  </script>
 {% endblock %}

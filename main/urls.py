@@ -47,4 +47,5 @@ urlpatterns = [
         views.toggle_achievement_like,
         name="toggle_achievement_like",
     ),
+    path("experiences/add-ajax/", views.create_experience_ajax, name="create_experience_ajax"),
 ]

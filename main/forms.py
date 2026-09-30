@@ -57,7 +57,7 @@ class ExperienceForm(ModelForm):
             ),
             "org_logo": TextInput(
                 attrs={
-                    "placeholder": "Path atau URL logo organisasi",
+                    "placeholder": "Organization logo path or URL",
                     "maxlength": 255,
                     "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
                 }
@@ -71,7 +71,7 @@ class ExperienceForm(ModelForm):
             ),
             "description": Textarea(
                 attrs={
-                    "placeholder": "Deskripsi pengalaman",
+                    "placeholder": "Describe this experience",
                     "rows": 5,
                     "class": "w-full rounded-md border-2 border-accent bg-paper px-4 py-3 text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30",
                 }
