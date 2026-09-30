@@ -2,9 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -97,6 +96,9 @@ def show_experiences(request):
 
 def show_about(request):
     title_query = request.GET.get("title", "").strip()
+    achievements = Achievements.objects.all()
+    if title_query:
+        achievements = achievements.filter(title__icontains=title_query)
 
     context = {
         "name": "Fiqhi Deski Ismail",
@@ -115,6 +117,7 @@ def show_about(request):
         "SMP": Educations.objects.filter(
             institution="SMP Islam Raudhatul Jannah",
         ).first(),
+        "achievement_list": achievements.order_by("-year"),
         "title_query": title_query,
         "can_update": can_update_portfolio(request.user),
     }

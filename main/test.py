@@ -1,12 +1,10 @@
-import json
 from datetime import date
 
 from django.contrib.auth.models import Group, User
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from main.models import Achievements, Educations, Experience
-from main.views import get_achievement_json
 
 
 class TestMain(TestCase):
@@ -50,35 +48,56 @@ class TestMain(TestCase):
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experiences"))
+        api_response = self.client.get(reverse("main:get_experience_json"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
-        self.assertQuerySetEqual(response.context["experience_list"], [self.experience])
-        self.assertContains(response, "<article", count=1)
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.organization)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "May 2026 &mdash; Present")
+        self.assertContains(response, 'id="experience-grid"')
+        self.assertContains(response, reverse("main:get_experience_json"))
+        self.assertEqual(api_response.status_code, 200)
+        self.assertEqual(api_response["Content-Type"], "application/json")
+        self.assertEqual(
+            api_response.json(),
+            [
+                {
+                    "pk": str(self.experience.id),
+                    "fields": {
+                        "title": self.experience.title,
+                        "organization": self.experience.organization,
+                        "org_logo": "",
+                        "location": self.experience.location,
+                        "description": self.experience.description,
+                        "started_at": "2026-05-01",
+                        "ended_at": None,
+                        "skills": self.experience.skills,
+                        "is_liked": False,
+                        "like_count": 0,
+                        "liked_by_names": "",
+                    },
+                }
+            ],
+        )
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experiences"))
+        api_response = self.client.get(reverse("main:get_experience_json"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
-        self.assertQuerySetEqual(response.context["experience_list"], [])
         self.assertContains(response, "Recent Experiences")
-        self.assertNotContains(response, "<article")
+        self.assertContains(response, 'id="experience-empty"')
+        self.assertEqual(api_response.json(), [])
 
     def test_completed_experience(self):
         self.experience.ended_at = date(2026, 7, 1)
         self.experience.save()
         self.experience.refresh_from_db()
-        response = self.client.get(reverse("main:show_experiences"))
+        response = self.client.get(reverse("main:get_experience_json"))
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "May 2026 &mdash; July 2026")
-        self.assertNotContains(response, "Present")
+        self.assertEqual(response.json()[0]["fields"]["started_at"], "2026-05-01")
+        self.assertEqual(response.json()[0]["fields"]["ended_at"], "2026-07-01")
 
     def test_experience_page_displays_multiple_experiences(self):
         completed_experience = Experience.objects.create(
@@ -88,18 +107,36 @@ class TestMain(TestCase):
             started_at=date(2026, 6, 1),
             ended_at=date(2026, 7, 1),
         )
-        response = self.client.get(reverse("main:show_experiences"))
+        response = self.client.get(reverse("main:get_experience_json"))
 
-        self.assertQuerySetEqual(
-            response.context["experience_list"],
-            [self.experience, completed_experience],
-            ordered=False,
+        items = {item["pk"]: item["fields"] for item in response.json()}
+        self.assertEqual(
+            set(items), {str(self.experience.id), str(completed_experience.id)}
         )
-        self.assertContains(response, "<article", count=2)
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, completed_experience.title)
-        self.assertContains(response, "May 2026 &mdash; Present")
-        self.assertContains(response, "June 2026 &mdash; July 2026")
+        self.assertEqual(items[str(self.experience.id)]["title"], self.experience.title)
+        self.assertEqual(items[str(completed_experience.id)]["ended_at"], "2026-07-01")
+
+    def test_experience_json_filters_titles_case_insensitively(self):
+        Experience.objects.create(
+            title="Local Volunteer",
+            organization="AIESEC",
+            description="Environmental education.",
+            started_at=date(2026, 6, 1),
+        )
+
+        response = self.client.get(
+            reverse("main:get_experience_json"), {"title": "TEACHING"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+        response = self.client.get(
+            reverse("main:get_experience_json"), {"title": "asisten"}
+        )
+        self.assertEqual(
+            [item["pk"] for item in response.json()], [str(self.experience.id)]
+        )
 
     def test_update_experience_page_prefills_existing_data(self):
         self.client.force_login(self.owner)
@@ -131,6 +168,76 @@ class TestMain(TestCase):
         self.assertRedirects(response, reverse("main:show_experiences"))
         self.experience.refresh_from_db()
         self.assertEqual(self.experience.title, "Updated Experience")
+
+
+class TestExperienceAjaxCreate(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password"
+        )
+        self.regular = User.objects.create_user(
+            username="regular", password="test-password"
+        )
+        self.url = reverse("main:create_experience_ajax")
+        self.valid_data = {
+            "title": "Teaching Assistant",
+            "organization": "Universitas Indonesia",
+            "org_logo": "",
+            "location": "Depok",
+            "description": "Teaching web development.",
+            "started_at": "2026-05-01",
+            "ended_at": "",
+            "skills": "Django, Teaching",
+        }
+
+    def test_owner_can_create_experience(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(self.url, self.valid_data)
+
+        self.assertEqual(response.status_code, 201)
+        experience = Experience.objects.get(title=self.valid_data["title"])
+        self.assertEqual(response.json()["pk"], str(experience.pk))
+        self.assertEqual(experience.organization, self.valid_data["organization"])
+
+    def test_invalid_data_returns_errors_without_creating_experience(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(self.url, self.valid_data | {"title": ""})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("title", response.json()["errors"])
+        self.assertFalse(Experience.objects.exists())
+
+    def test_guests_and_regular_users_cannot_create_experience(self):
+        for user in [None, self.regular]:
+            with self.subTest(user=user):
+                if user is not None:
+                    self.client.force_login(user)
+
+                response = self.client.post(self.url, self.valid_data)
+                self.assertEqual(response.status_code, 403)
+                self.assertFalse(Experience.objects.exists())
+                self.client.logout()
+
+    def test_create_endpoint_requires_post_and_csrf(self):
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.owner)
+        self.assertEqual(csrf_client.post(self.url, self.valid_data).status_code, 403)
+        self.assertFalse(Experience.objects.exists())
+
+        page = csrf_client.get(reverse("main:show_experiences"))
+        csrf_token = page.cookies["csrftoken"].value
+        response = csrf_client.post(
+            self.url, self.valid_data | {"csrfmiddlewaretoken": csrf_token}
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(
+            Experience.objects.filter(title=self.valid_data["title"]).exists()
+        )
 
 
 class TestAbout(TestCase):
@@ -357,7 +464,9 @@ class TestAchievementManagement(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["title_query"], "science")
-        self.assertEqual(response.context["achievement_list"], [matching_achievement])
+        self.assertQuerySetEqual(
+            response.context["achievement_list"], [matching_achievement]
+        )
         self.assertContains(response, matching_achievement.title)
         self.assertNotContains(response, self.achievement.title)
 
@@ -369,9 +478,10 @@ class TestAchievementManagement(TestCase):
             rank=Achievements.Rank.FINALIST,
         )
 
-        request = RequestFactory().get("/api/achievement/", {"title": "programming"})
-        response = get_achievement_json(request)
-        payload = json.loads(response.content)
+        response = self.client.get(
+            reverse("main:get_achievement_json"), {"title": "programming"}
+        )
+        payload = response.json()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/json")
@@ -543,11 +653,14 @@ class TestAuthorizationAndLikes(TestCase):
 
         for item, url in cases:
             with self.subTest(url=url):
-                self.client.post(url)
+                response = self.client.post(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"is_liked": True, "like_count": 1})
                 self.assertTrue(item.liked_by.filter(pk=self.regular.pk).exists())
                 self.assertEqual(item.liked_by.count(), 1)
 
-                self.client.post(url)
+                response = self.client.post(url)
+                self.assertEqual(response.json(), {"is_liked": False, "like_count": 0})
                 self.assertFalse(item.liked_by.filter(pk=self.regular.pk).exists())
                 self.assertEqual(item.liked_by.count(), 0)
 
@@ -574,66 +687,79 @@ class TestAuthorizationAndLikes(TestCase):
             with self.subTest(url=url):
                 self.assertEqual(csrf_client.post(url).status_code, 403)
 
-    def test_action_controls_match_each_role(self):
-        experience_urls = {
-            "create": reverse("main:create_experience"),
-            "edit": reverse("main:update_experience", args=[self.experience.id]),
-            "delete": reverse("main:delete_experience", args=[self.experience.id]),
-            "like": reverse("main:toggle_experience_like", args=[self.experience.id]),
-        }
-        achievement_urls = {
+    def test_experience_page_exposes_permissions_to_card_renderer(self):
+        url = reverse("main:show_experiences")
+        cases = [
+            (None, False, False, False),
+            (self.regular, True, False, False),
+            (self.editor, True, True, False),
+            (self.owner, True, True, True),
+        ]
+
+        for user, authenticated, can_update, can_delete in cases:
+            with self.subTest(user=user):
+                if user is None:
+                    self.client.logout()
+                else:
+                    self.client.force_login(user)
+
+                response = self.client.get(url)
+                self.assertContains(
+                    response,
+                    f'const IS_AUTHENTICATED = "{str(authenticated).lower()}"',
+                )
+                self.assertContains(
+                    response, f'const CAN_UPDATE = "{str(can_update).lower()}"'
+                )
+                self.assertContains(
+                    response, f'const CAN_DELETE = "{str(can_delete).lower()}"'
+                )
+                if can_delete:
+                    self.assertContains(response, 'id="add-experience-modal"')
+                else:
+                    self.assertNotContains(response, 'id="add-experience-modal"')
+
+    def test_about_page_action_controls_match_each_role(self):
+        urls = {
             "create": reverse("main:create_achievement"),
             "edit": reverse("main:update_achievement", args=[self.achievement.id]),
             "delete": reverse("main:delete_achievement", args=[self.achievement.id]),
             "like": reverse("main:toggle_achievement_like", args=[self.achievement.id]),
         }
 
-        for page_name, urls in [
-            ("main:show_experiences", experience_urls),
-            ("main:show_about", achievement_urls),
+        response = self.client.get(reverse("main:show_about"))
+        self.assertContains(response, "0 likes")
+        for action_url in urls.values():
+            self.assertNotContains(response, action_url)
+
+        for user, visible, hidden in [
+            (self.regular, ("like",), ("create", "edit", "delete")),
+            (self.editor, ("like", "edit"), ("create", "delete")),
+            (self.owner, tuple(urls), ()),
         ]:
-            with self.subTest(role="guest", page=page_name):
-                response = self.client.get(reverse(page_name))
-                self.assertContains(response, "0 likes")
-                for url in urls.values():
-                    self.assertNotContains(response, url)
-
-            self.client.force_login(self.regular)
-            with self.subTest(role="regular", page=page_name):
-                response = self.client.get(reverse(page_name))
-                self.assertContains(response, urls["like"])
-                for action in ["create", "edit", "delete"]:
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(reverse("main:show_about"))
+                for action in visible:
+                    self.assertContains(response, urls[action])
+                for action in hidden:
                     self.assertNotContains(response, urls[action])
-            self.client.logout()
+                self.client.logout()
 
-            self.client.force_login(self.editor)
-            with self.subTest(role="editor", page=page_name):
-                response = self.client.get(reverse(page_name))
-                self.assertContains(response, urls["like"])
-                self.assertContains(response, urls["edit"])
-                self.assertNotContains(response, urls["create"])
-                self.assertNotContains(response, urls["delete"])
-            self.client.logout()
-
-            self.client.force_login(self.owner)
-            with self.subTest(role="owner", page=page_name):
-                response = self.client.get(reverse(page_name))
-                for url in urls.values():
-                    self.assertContains(response, url)
-            self.client.logout()
-
-    def test_json_uses_user_natural_keys_instead_of_internal_ids(self):
+    def test_json_exposes_like_state_without_internal_user_ids(self):
         self.experience.liked_by.add(self.regular)
         self.achievement.liked_by.add(self.regular)
 
-        experience_payload = json.loads(
-            self.client.get(reverse("main:get_experience_json")).content
-        )
-        achievement_payload = json.loads(
-            self.client.get(reverse("main:get_achievement_json")).content
-        )
+        for endpoint in ["main:get_experience_json", "main:get_achievement_json"]:
+            with self.subTest(endpoint=endpoint):
+                guest_fields = self.client.get(reverse(endpoint)).json()[0]["fields"]
+                self.assertFalse(guest_fields["is_liked"])
+                self.assertEqual(guest_fields["liked_by_names"], "regular")
+                self.assertNotIn("liked_by", guest_fields)
 
-        self.assertEqual(experience_payload[0]["fields"]["liked_by"], [["regular"]])
-        self.assertEqual(achievement_payload[0]["fields"]["liked_by"], [["regular"]])
-        self.assertNotIn(self.regular.pk, experience_payload[0]["fields"]["liked_by"])
-        self.assertNotIn(self.regular.pk, achievement_payload[0]["fields"]["liked_by"])
+                self.client.force_login(self.regular)
+                user_fields = self.client.get(reverse(endpoint)).json()[0]["fields"]
+                self.assertTrue(user_fields["is_liked"])
+                if endpoint == "main:get_experience_json":
+                    self.assertEqual(user_fields["like_count"], 1)
+                self.client.logout()
