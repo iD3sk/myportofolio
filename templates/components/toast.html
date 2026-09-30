@@ -1,0 +1,8 @@
+{% load static %}
+<div id="toast-component" class="toast-hidden fixed right-8 bottom-8 m-0 hidden items-center gap-4 rounded-default border border-l-4 border-line bg-paper px-6 py-4 text-inherit shadow-[0_10px_25px_rgba(28,25,23,0.15)] transition-all duration-300 ease-in-out motion-reduce:transition-none [&.toast-error]:border-l-[#b42318] [&.toast-hidden]:pointer-events-none [&.toast-hidden]:translate-y-[150%] [&.toast-hidden]:opacity-0 [&.toast-normal]:border-l-accent [&.toast-show]:translate-y-0 [&.toast-show]:opacity-100 [&.toast-success]:border-l-[#22c55e] [&:popover-open]:flex" popover="manual">
+  <div>
+    <h3 id="toast-title" class="mb-[0.15rem] font-display text-base font-bold">This is a Sample Title</h3>
+    <p id="toast-message" class="text-[0.85rem] text-muted">This is a Sample Message</p>
+  </div>
+</div>
+<script src="{% static 'js/toast.js' %}"></script>
