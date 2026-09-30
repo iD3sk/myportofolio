@@ -3,7 +3,7 @@
     {% csrf_token %}
     <button
       type="submit"
-      class="inline-flex items-center gap-[0.4rem] rounded-xl px-4 py-2 text-sm font-semibold text-paper transition-colors {% if user in likeable.liked_by.all %}bg-accent hover:bg-accent-dark{% else %}bg-ink hover:bg-primary{% endif %}"
+      class="button button-compact gap-[0.4rem] {% if user not in likeable.liked_by.all %}button-dark{% endif %}"
       title="{% if user in likeable.liked_by.all %}Unlike this item{% else %}Like this item{% endif %}"
     >
       <span aria-hidden="true">&hearts;</span>

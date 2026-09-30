@@ -14,8 +14,8 @@
         <span class="text-xl mr-2">{{ user.username }}</span>
         <a href="{% url 'main:logout' %}" class="inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Logout</a>
       {% else %}
-          <a href="{% url 'main:login' %}" class="px-4 py-1.5 bg-primary text-paper rounded-xl hover:bg-primary-dark">Login</a>
-          <a href="{% url 'main:register' %}" class="px-4 py-1.5 bg-accent text-paper rounded-xl hover:bg-accent-dark" >Register</a>
+        <a href="{% url 'main:login' %}" class="button button-dark button-compact">Login</a>
+        <a href="{% url 'main:register' %}" class="button button-compact">Register</a>
       {% endif %}
     </div>
 
@@ -55,11 +55,11 @@
     {% if user.is_authenticated %}
       <p class="text-xs tracking-[0.15em] text-paper/50 uppercase">Signed in as</p>
       <p class="mt-2 text-lg font-semibold">{{ user.username }}</p>
-      <a href="{% url 'main:logout' %}" class="mt-4 inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Logout</a>
+      <a href="{% url 'main:logout' %}" class="inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Logout</a>
     {% else %}
       <div class="flex gap-3">
-        <a href="{% url 'main:login' %}" class="inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-primary-dark">Login</a>
-        <a href="{% url 'main:register' %}" class="inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-paper transition-colors hover:bg-accent-dark">Register</a>
+      <a href="{% url 'main:login' %}" class="button button-dark button-compact">Login</a>
+      <a href="{% url 'main:register' %}" class="button-compact">Register</a>
       </div>
     {% endif %}
   </div>

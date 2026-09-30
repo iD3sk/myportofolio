@@ -1,12 +1,12 @@
 {% if can_edit %}
-  <a href="{{ edit_url }}" class="inline-flex flex-1 items-center justify-center rounded-xl bg-paper px-5 py-1.5 text-sm font-semibold text-ink transition-colors hover:bg-primary hover:text-paper sm:py-2">
+  <a href="{{ edit_url }}" class="button button-secondary button-small flex-1">
     {{ edit_label }}
   </a>
 {% endif %}
 {% if can_delete %}
   <form method="post" action="{{ delete_url }}" class="flex-1">
     {% csrf_token %}
-    <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-accent px-5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark sm:py-2">
+    <button type="submit" class="button button-small w-full">
       {{ delete_label }}
     </button>
   </form>
