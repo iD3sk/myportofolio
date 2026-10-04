@@ -295,3 +295,54 @@ Referensi log chat:
 ```bash
 https://chatgpt.com/s/cx_6ab8eb70a0a481918e7ab4d28c377a33
 ```
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+# Tugas 5
+
+Pada minggu ini aku me-refactor alur data-delivery masing-masing model `Experience` dan `Achievement` dengan AJAX.
+
+## Pertanyaan Reflektif
+
+>Jelaskan apa itu debouncing dan mengapa teknik ini penting diterapkan pada fitur pencarian yang menggunakan AJAX!
+
+1. Debouncing adalah teknik untuk menunda eksekusi suatu fungsi hingga jeda waktu tertentu sejak terakhir kali dipicu. Teknik ini berguna untuk fitur pencarian dengan AJAX untuk mengurangi request yang berlebihan dan mengurangi biaya server. 
+
+<br>
+
+>Jelaskan fungsi dari penggunaan await ketika kita menggunakan fetch()! Apa yang akan terjadi jika kita tidak menggunakan await?
+
+2. `await` digunakan untuk menunggu Promise yang dikembalikan oleh `fetch()` selesai, sehingga kode dapat menggunakan hasil respons sebelum melanjutkan ke langkah berikutnya. Tanpa `await`, `fetch()` tetap berjalan secara asynchronous dan kode setelahnya langsung dieksekusi. Akibatnya, kode dapat mencoba membaca respons sebelum data tersedia; untuk menanganinya, hasil `fetch()` perlu diproses melalui `.then()` atau mekanisme asynchronous lainnya.
+
+<br>
+
+>Jelaskan apa itu serangan XSS (Cross-Site Scripting) dan mengapa data yang ditampilkan melalui AJAX/JavaScript lebih rentan terhadap serangan ini daripada data yang ditampilkan langsung melalui template Django!
+
+3. XSS adalah serangan ketika penyerang memasukkan script berbahaya ke dalam konten yang kemudian dijalankan di browser pengguna. Data yang dimasukkan ke halaman melalui JavaScript perlu ditangani dengan hati-hati: jika teks tidak di-escape dan dimasukkan sebagai HTML, browser dapat menafsirkan markup atau script tersebut sebagai kode. Template Django melakukan auto-escaping pada nilai yang ditampilkan secara default, sedangkan kode JavaScript harus memastikan sendiri bahwa data diperlakukan sebagai teks aman, misalnya dengan memakai `textContent` alih-alih `innerHTML`.
+
+<br>
+
+## AI Disclosure
+
+### Overview
+
+Aku menggunakan AI (Codex) untuk menanyakan beberapa hal yang belum kupahami dan memeriksa kembali apakah implementasi telah memenuhi requirement tugas.
+
+### Strategi Prompting
+
+Aku mengajukan pertanyaan singkat tentang bagian yang belum kupahami, lalu memberikan requirement tugas sebagai acuan untuk meminta AI memeriksa kesesuaian implementasi.
+
+### Perbaikan Manual
+
+Aku meninjau kembali masukan AI dan mencocokkan implementasi dengan requirement tugas.
+
+
+Referensi log chat:
+```bash
+https://chatgpt.com/s/cx_6ac224c957348191a6e5e3eb86ced055
+```
