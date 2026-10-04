@@ -57,47 +57,325 @@
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">Recognition from competitions, academic work, and other milestones.</p>
       {% if user.is_superuser %}
         <div class="mt-8 flex justify-end">
-          <a href="{% url 'main:create_achievement' %}" class="inline-flex items-center justify-center rounded-xl bg-ink px-8 py-4 text-base font-semibold text-paper transition-colors hover:bg-primary">
-            Add Achievement
-          </a>
+          <button type="button"
+            class="button-dark button-lg"
+            popovertarget="add-achievement-modal">
+            <span aria-hidden="true">Add Achievement</span>
+          </button>
         </div>
       {% endif %}
-      <div class="mt-12 grid gap-8">
-        {% for achievement in achievement_list %}
-          <article class="grid grid-cols-[4.5rem_1fr] gap-x-5 gap-y-6 rounded-xl border-2 border-ink/20 bg-paper p-5 shadow-[6px_6px_0_var(--color-line)] md:grid-cols-[5rem_1fr] md:gap-x-7 md:p-8">
-            <div class="flex size-18 items-center justify-center rounded-default border border-ink/20 bg-white p-2 shadow-sm md:size-20">
-              <img src="{% static achievement.org_logo %}" alt="org logo" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async" />
-            </div>
 
-            <div class="flex min-w-0 flex-col items-start">
-              <span data-rank="{{ achievement.rank }}" class="inline-flex min-w-20 items-center justify-center rounded-sm px-3 py-1.5 text-xs font-bold tracking-widest text-white uppercase shadow-[3px_3px_0_var(--color-ink)] data-[rank=bronze]:bg-[#9a4f16] data-[rank=gold]:bg-[#8a6500] data-[rank=silver]:bg-[#5f6b76]">{{ achievement.get_rank_display }}</span>
-              <h3 class="mt-4 font-display text-xl leading-tight font-bold md:text-2xl">{{ achievement.title }}</h3>
-              <p class="mt-2 text-muted">{{ achievement.organization }}</p>
-            </div>
+      <form id="achievement-search-form" role="search" class="mt-8 flex flex-col gap-3 sm:flex-row" action="{% url 'main:show_about' %}" method="get">
+        <label for="achievement-search" class="sr-only">Search achievements by title</label>
+        <input id="achievement-search" name="title" type="search" value="{{ title_query }}" placeholder="Search achievements by title" class="min-h-11 flex-1 rounded-xl border border-line bg-white px-4 py-2 text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+        <button type="submit" class="button button-dark">Search</button>
+      </form>
 
-            <p class="col-span-2 max-w-3xl leading-relaxed text-muted">{{ achievement.description }}</p>
-
-            <div class="col-span-2 border-t border-ink/20 pt-4">
-              <p class="font-mono text-sm tracking-[0.08em] text-muted">{{ achievement.year }}</p>
-              <div class="mt-6 flex items-center justify-between gap-3">
-                {% url 'main:toggle_achievement_like' achievement.id as toggle_url %}
-                {% include "components/portfolio_like.html" with likeable=achievement toggle_url=toggle_url %}
-                {% if can_update %}
-                  <div class="flex w-full gap-3 sm:w-1/3">
-                    {% url 'main:update_achievement' achievement.id as edit_url %}
-                    {% url 'main:delete_achievement' achievement.id as delete_url %}
-
-                    {% include "components/crud_actions.html" with edit_url=edit_url delete_url=delete_url edit_label="Edit Achievement" delete_label="Delete Achievement" can_edit=can_update can_delete=user.is_superuser %}
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-              
-          </article>
-          {% empty %}
-          <h1>No achievement available</h1>
-        {% endfor %}
+      <p id="achievement-loading" class="mt-12 text-muted" role="status">Loading achievements…</p>
+      <div id="achievement-error" class="mt-12 rounded-xl border border-line bg-white p-5" role="alert" hidden>
+        <p class="text-muted">Could not load achievements. Please try again.</p>
+        <button id="achievement-retry" type="button" class="button button-dark button-compact mt-4">Retry</button>
       </div>
+      <p id="achievement-empty" class="mt-12 text-muted" hidden>No achievements match your search.</p>
+      <div id="achievement-grid" class="grid mt-12 gap-8" aria-live="polite"></div>
     </div>
+
+    {% if user.is_superuser %}
+      {% include "components/achievement_modal_form.html" %}
+    {% endif %}
   </section>
+
+  <script>
+    const ACHIEVEMENT_ENDPOINT = "{% url 'main:get_achievement_json' %}";
+    const STATIC_URL = "{% get_static_prefix %}"
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const CAN_UPDATE = "{{ can_update|yesno:'true,false' }}" === "true";
+    const CAN_DELETE = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const CSRF_TOKEN = "{{ csrf_token }}";
+    const ACHIEVEMENT_ID_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
+    const CREATE_ACHIEVEMENT_ENDPOINT = "{% url 'main:create_achievement_ajax' %}";
+    const achievementForm = document.getElementById("achievement-form");
+    const achievementSearchForm = document.getElementById("achievement-search-form");
+    const achievementSearchInput = document.getElementById("achievement-search");
+    const achievementLoading = document.getElementById("achievement-loading");
+    const achievementError = document.getElementById("achievement-error");
+    const achievementEmpty = document.getElementById("achievement-empty");
+    const achievementGrid = document.getElementById("achievement-grid");
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;
+    let achievementAbortController;
+
+    function setAchievementState(state) {
+      const hasCards = achievementGrid.children.length > 0;
+
+      achievementLoading.hidden = state !== "loading";
+      achievementError.hidden = state !== "error";
+      achievementEmpty.hidden = state !== "empty";
+      achievementGrid.hidden =
+        state !== "results" && !(state === "loading" && hasCards);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(
+        /[&<>"']/g,
+        (character) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[character],
+      );
+    }
+
+    function buildAchievementCard(item) {
+      const achievement = item.fields;
+      const achievementId = item.pk;
+      const escapedId = escapeHtml(achievementId);
+      const likeUrl = "{% url 'main:toggle_achievement_like' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
+      const editUrl = "{% url 'main:update_achievement' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
+      const deleteUrl = "{% url 'main:delete_achievement' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
+      const csrfInput = `
+        <input
+          type="hidden"
+          name="csrfmiddlewaretoken"
+          value="${escapeHtml(CSRF_TOKEN)}"
+        >
+      `;
+      const logoHtml = achievement.org_logo ? `<img src="${STATIC_URL}${escapeHtml(achievement.org_logo)}" alt="" class="h-full w-full object-contain" width="80" height="80" loading="lazy" decoding="async">` : "";
+      const likeButtonClass = achievement.is_liked ? "" : "button-dark";
+      const likeHtml = IS_AUTHENTICATED
+        ?
+        `
+          <form data-like-form method="post" action="${likeUrl}" class="inline">
+            ${csrfInput}
+            <button
+              type="submit"
+              class="button button-compact ${likeButtonClass} gap-[0.4rem]"
+              title="${achievement.is_liked ? "Unlike this item" : "Like this item"}"
+            >
+              <span aria-hidden="true">&hearts;</span>
+              <span data-like-label>${escapeHtml(achievement.is_liked) ? "Unlike" : "Like"}</span>
+              <span data-like-count class="rounded-full bg-white/25 px-[0.4rem] py-[0.05rem] text-[0.8rem]">${Number(achievement.like_count) || 0}</span>
+            </button>
+          </form>
+        `
+        : `
+          <span
+            class="inline-flex items-center gap-[0.4rem] rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold text-muted"
+            title="Login to like this item"
+          >
+            <span aria-hidden="true">&hearts;</span>
+            ${Number(achievement.like_count) || 0}
+            like${Number(achievement.like_count) === 1 ? "" : "s"}
+          </span>
+        `;
+      const editHtml = CAN_UPDATE
+        ? `
+          <a href="${editUrl}" class="button button-secondary button-small flex-1">
+            Edit Experience
+          </a>
+        `
+        : "";
+      const deleteHtml = CAN_DELETE
+        ? `
+          <form method="post" action="${deleteUrl}" class="flex-1">
+            ${csrfInput}
+            <button type="submit" class="button button-small w-full">
+              Delete Experience
+            </button>
+          </form>
+        `
+        : "";
+      const crudHtml = CAN_UPDATE
+        ? `
+          <div class="flex w-full gap-3 sm:w-1/3">
+            ${editHtml}
+            ${deleteHtml}
+          </div>
+        `
+        : "";
+
+      const card = document.createElement("article");
+      
+      card.className = "grid grid-cols-[4.5rem_1fr] gap-x-5 gap-y-6 rounded-xl border-2 border-ink/20 bg-paper p-5 shadow-[6px_6px_0_var(--color-line)] md:grid-cols-[5rem_1fr] md:gap-x-7 md:p-8";
+      card.innerHTML = `
+        <div class="flex size-18 items-center justify-center rounded-default border border-ink/20 bg-white p-2 shadow-sm md:size-20">
+          ${logoHtml}
+        </div>
+
+        <div class="flex min-w-0 flex-col items-start">
+          <span data-rank="${ escapeHtml(achievement.rank) }" class="inline-flex min-w-20 items-center justify-center rounded-sm px-3 py-1.5 text-xs font-bold tracking-widest text-white uppercase shadow-[3px_3px_0_var(--color-ink)] data-[rank=bronze]:bg-[#9a4f16] data-[rank=gold]:bg-[#8a6500] data-[rank=silver]:bg-[#5f6b76]">${ escapeHtml(achievement.rank_display) }</span>
+          <h3 class="mt-4 font-display text-xl leading-tight font-bold md:text-2xl">${ escapeHtml(achievement.title) }</h3>
+          <p class="mt-2 text-muted">${ escapeHtml(achievement.organization) }</p>
+        </div>
+
+        <p class="col-span-2 max-w-3xl leading-relaxed text-muted">${ escapeHtml(achievement.description) }</p>
+
+        <div class="col-span-2 border-t border-ink/20 pt-4">
+          <p class="font-mono text-sm tracking-[0.08em] text-muted">${ escapeHtml(achievement.year) }</p>
+          <div class="mt-6 flex items-center justify-between gap-3">
+            ${likeHtml}
+            ${crudHtml}
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    async function fetchAchievement(searchQuery = "") {
+      achievementAbortController?.abort();
+      achievementAbortController = new AbortController();
+      setAchievementState("loading");
+
+      const url = new URL(ACHIEVEMENT_ENDPOINT, window.location.origin);
+      if (searchQuery) url.searchParams.set("title", searchQuery);
+
+      try {
+        const response = await fetch(url, {
+          headers: { Accept: "application/json" },
+          signal: achievementAbortController.signal,
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch achievement");
+
+        const achievements = await response.json();
+        achievementGrid.replaceChildren();
+        if (achievements.length === 0) {
+          achievementEmpty.textContent = searchQuery
+            ? `No achievements found for “${searchQuery}”.`
+            : "No achievements have been added yet.";
+          setAchievementState("empty");
+          return;
+        }
+
+        achievements.forEach((item) => achievementGrid.appendChild(buildAchievementCard(item)));
+        setAchievementState("results");
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("Error loading achievements:", error);
+        setAchievementState("error");
+      }
+    }
+
+    function searchAchievement() {
+      fetchAchievement(achievementSearchInput.value.trim());
+    }
+
+    achievementSearchInput.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+
+      searchDebounceTimer = setTimeout(() => {
+        searchAchievement();
+      }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    achievementSearchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      clearTimeout(searchDebounceTimer);
+      searchAchievement();
+    });
+
+    document.getElementById("achievement-retry").addEventListener("click", () => {
+      fetchAchievement(achievementSearchInput.value.trim());
+    });
+
+    achievementGrid.addEventListener("submit", async (event) => {
+      const likeForm = event.target.closest("form[data-like-form]");
+      if (!likeForm) return;
+
+      event.preventDefault();
+
+      const likeButton = likeForm.querySelector("button[type='submit']");
+      const likeLabel = likeForm.querySelector("[data-like-label]");
+      const likeCount = likeForm.querySelector("[data-like-count]");
+      if (!likeButton || !likeLabel || !likeCount) return;
+
+      likeButton.disabled = true;
+
+      try {
+        const response = await fetch(likeForm.action, {
+          method: "POST",
+          body: new FormData(likeForm),
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Failed to update Like status");
+
+        const result = await response.json();
+        likeLabel.textContent = result.is_liked ? "Unlike" : "Like";
+        likeCount.textContent = result.like_count;
+        likeButton.title = result.is_liked ? "Unlike this item" : "Like this item";
+        likeButton.classList.toggle("button-dark", !result.is_liked);
+      } catch (error) {
+        console.error("Error updating Like status:", error);
+      } finally {
+        likeButton.disabled = false;
+      }
+    });
+
+    function closeAchievementModal() {
+      document.getElementById("add-achievement-modal").hidePopover();
+    }
+
+    async function addAchievement(event) {
+      event.preventDefault();
+
+      const submitButton = achievementForm.querySelector("button[type='submit']");
+      if (!submitButton) return;
+
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch(CREATE_ACHIEVEMENT_ENDPOINT, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: new FormData(achievementForm),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+          achievementForm.reset();
+          closeAchievementModal();
+          showToast("Success", "New achievement has been added!", "success");
+          fetchAchievement(achievementSearchInput.value.trim());
+        } else {
+          const errorMessages = result.errors
+            ? Object.values(result.errors)
+                .flat()
+                .map((error) => error.message)
+            : [
+                result.message ||
+                  `An error occurred (status ${response.status}).`,
+              ];
+          showToast(
+            "Failed to add achievement",
+            errorMessages.join(" "),
+            "error",
+          );
+        }
+      } catch (error) {
+        console.error("Error adding achievement:", error);
+        showToast(
+          "Failed to add achievement",
+          "Could not connect to the server. Please try again.",
+          "error",
+        );
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    if (achievementForm) {
+      achievementForm.addEventListener("submit", addAchievement);
+    }
+
+    fetchAchievement(achievementSearchInput.value.trim());
+  
+  </script>
 {% endblock %}

@@ -1,6 +1,14 @@
 from django.forms import CharField, ModelForm, NumberInput, Select, Textarea, TextInput
+from django.utils.html import strip_tags
 
 from main.models import Achievements, Experience
+
+
+def strip_tags_from_text_fields(cleaned_data):
+    for name, value in cleaned_data.items():
+        if isinstance(value, str):
+            cleaned_data[name] = strip_tags(value)
+    return cleaned_data
 
 
 class ExperienceForm(ModelForm):
@@ -90,6 +98,10 @@ class ExperienceForm(ModelForm):
             ),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        return strip_tags_from_text_fields(cleaned_data)
+
 
 class AchievementForm(ModelForm):
     class Meta:
@@ -147,3 +159,7 @@ class AchievementForm(ModelForm):
                 }
             ),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        return strip_tags_from_text_fields(cleaned_data)

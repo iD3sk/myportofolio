@@ -96,9 +96,6 @@ def show_experiences(request):
 
 def show_about(request):
     title_query = request.GET.get("title", "").strip()
-    achievements = Achievements.objects.all()
-    if title_query:
-        achievements = achievements.filter(title__icontains=title_query)
 
     context = {
         "name": "Fiqhi Deski Ismail",
@@ -117,9 +114,9 @@ def show_about(request):
         "SMP": Educations.objects.filter(
             institution="SMP Islam Raudhatul Jannah",
         ).first(),
-        "achievement_list": achievements.order_by("-year"),
         "title_query": title_query,
         "can_update": can_update_portfolio(request.user),
+        "form": AchievementForm(),
     }
 
     return render(request, "about.html", context)
@@ -145,6 +142,25 @@ def create_achievement(request):
     return render(request, "achievement_form.html", context)
 
 
+@require_POST
+def create_achievement_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add an achievement."},
+            status=403,
+        )
+
+    form = AchievementForm(request.POST)
+    if form.is_valid():
+        achievement = form.save()
+        return JsonResponse(
+            {"message": "New achievement has been added.", "pk": str(achievement.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+
 def get_achievement_json(request):
     title_query = request.GET.get("title", "").strip()
     achievements = Achievements.objects.all()
@@ -157,21 +173,29 @@ def get_achievement_json(request):
     data = []
     for achievement in achievements:
         liked_users = achievement.liked_by.all()
-        is_liked = request.user in liked_users if request.user.is_authenticated else False
+        liked_user_ids = {user.pk for user in liked_users}
+        is_liked = (
+            request.user in liked_users if request.user.is_authenticated else False
+        )
         liked_by_names = ", ".join([u.username for u in liked_users])
 
-        data.append({
-            "pk": str(achievement.id),
-            "fields": {
-                "title": achievement.title,
-                "year": achievement.year,
-                "organization": achievement.organization,
-                "rank": achievement.rank,
-                "description": achievement.description,
-                "is_liked": is_liked,
-                "liked_by_names": liked_by_names,
+        data.append(
+            {
+                "pk": str(achievement.id),
+                "fields": {
+                    "title": achievement.title,
+                    "year": achievement.year,
+                    "organization": achievement.organization,
+                    "org_logo": achievement.org_logo,
+                    "rank": achievement.rank,
+                    "rank_display": achievement.get_rank_display(),
+                    "description": achievement.description,
+                    "is_liked": is_liked,
+                    "like_count": len(liked_user_ids),
+                    "liked_by_names": liked_by_names,
+                },
             }
-        })
+        )
 
     return JsonResponse(data, safe=False)
 
@@ -231,6 +255,7 @@ def create_experience(request):
 
     return render(request, "experience_form.html", context)
 
+
 @require_POST
 def create_experience_ajax(request):
     if not request.user.is_superuser:
@@ -249,6 +274,7 @@ def create_experience_ajax(request):
 
     return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
+
 def get_experience_json(request):
     title_query = request.GET.get("title", "").strip()
     experiences = Experience.objects.prefetch_related("liked_by").all()
@@ -260,27 +286,27 @@ def get_experience_json(request):
     for experience in experiences:
         liked_users = experience.liked_by.all()
         liked_user_ids = {user.pk for user in liked_users}
-        is_liked = (
-            request.user.is_authenticated and request.user.pk in liked_user_ids
-        )
+        is_liked = request.user.is_authenticated and request.user.pk in liked_user_ids
         liked_by_names = ", ".join(user.username for user in liked_users)
 
-        data.append({
-            "pk": str(experience.id),
-            "fields": {
-                "title": experience.title,
-                "organization": experience.organization,
-                "org_logo": experience.org_logo,
-                "location": experience.location,
-                "description": experience.description,
-                "started_at": experience.started_at,
-                "ended_at": experience.ended_at,
-                "skills": experience.skills,
-                "is_liked": is_liked,
-                "like_count": len(liked_user_ids),
-                "liked_by_names": liked_by_names,
-            },
-        })
+        data.append(
+            {
+                "pk": str(experience.id),
+                "fields": {
+                    "title": experience.title,
+                    "organization": experience.organization,
+                    "org_logo": experience.org_logo,
+                    "location": experience.location,
+                    "description": experience.description,
+                    "started_at": experience.started_at,
+                    "ended_at": experience.ended_at,
+                    "skills": experience.skills,
+                    "is_liked": is_liked,
+                    "like_count": len(liked_user_ids),
+                    "liked_by_names": liked_by_names,
+                },
+            }
+        )
 
     return JsonResponse(data, safe=False)
 
@@ -332,12 +358,14 @@ def toggle_experience_like(request, experience_id):
         experience.liked_by.add(request.user)
 
     like_user_ids = {user.pk for user in experience.liked_by.all()}
-    is_liked = (request.user.is_authenticated and request.user.pk in like_user_ids)
+    is_liked = request.user.is_authenticated and request.user.pk in like_user_ids
 
-    return JsonResponse({
-        "is_liked": is_liked,
-        "like_count": experience.liked_by.count(),
-    })
+    return JsonResponse(
+        {
+            "is_liked": is_liked,
+            "like_count": experience.liked_by.count(),
+        }
+    )
 
 
 @login_required(login_url="/login/")
@@ -349,11 +377,13 @@ def toggle_achievement_like(request, achievement_id):
         achievement.liked_by.remove(request.user)
     else:
         achievement.liked_by.add(request.user)
-    
-    liked_user_ids = {user.pk for user in achievement.liked_by.all()}
-    is_liked = (request.user.is_authenticated and request.user.pk in liked_user_ids)
 
-    return JsonResponse({
-        "is_liked": is_liked,
-        "like_count": achievement.liked_by.count(),
-    })
+    liked_user_ids = {user.pk for user in achievement.liked_by.all()}
+    is_liked = request.user.is_authenticated and request.user.pk in liked_user_ids
+
+    return JsonResponse(
+        {
+            "is_liked": is_liked,
+            "like_count": achievement.liked_by.count(),
+        }
+    )

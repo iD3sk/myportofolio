@@ -25,7 +25,9 @@ urlpatterns = [
     path("about/", views.show_about, name="show_about"),
     path("api/achievement/", views.get_achievement_json, name="get_achievement_json"),
     path(
-        "about/achievements/add/", views.create_achievement, name="create_achievement"
+        "about/achievements/add/",
+        views.create_achievement_ajax,
+        name="create_achievement_ajax",
     ),
     path(
         "about/achievements/<uuid:achievement_id>/edit/",
@@ -47,5 +49,9 @@ urlpatterns = [
         views.toggle_achievement_like,
         name="toggle_achievement_like",
     ),
-    path("experiences/add-ajax/", views.create_experience_ajax, name="create_experience_ajax"),
+    path(
+        "experiences/add-ajax/",
+        views.create_experience_ajax,
+        name="create_experience_ajax",
+    ),
 ]
