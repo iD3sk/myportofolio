@@ -53,7 +53,7 @@ class TestMain(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experiences.html")
         self.assertContains(response, 'id="experience-grid"')
-        self.assertContains(response, reverse("main:get_experience_json"))
+        self.assertContains(response, reverse("api:experience_list"))
         self.assertEqual(api_response.status_code, 200)
         self.assertEqual(api_response["Content-Type"], "application/json")
         self.assertEqual(

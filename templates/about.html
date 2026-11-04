@@ -86,14 +86,14 @@
   </section>
 
   <script>
-    const ACHIEVEMENT_ENDPOINT = "{% url 'main:get_achievement_json' %}";
+    const ACHIEVEMENT_ENDPOINT = "{% url 'api:achievement_list' %}";
     const STATIC_URL = "{% get_static_prefix %}"
     const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
     const CAN_UPDATE = "{{ can_update|yesno:'true,false' }}" === "true";
     const CAN_DELETE = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const CSRF_TOKEN = "{{ csrf_token }}";
     const ACHIEVEMENT_ID_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
-    const CREATE_ACHIEVEMENT_ENDPOINT = "{% url 'main:create_achievement_ajax' %}";
+    const CREATE_ACHIEVEMENT_ENDPOINT = "{% url 'api:achievement_list' %}";
     const achievementForm = document.getElementById("achievement-form");
     const achievementSearchForm = document.getElementById("achievement-search-form");
     const achievementSearchInput = document.getElementById("achievement-search");
@@ -130,12 +130,12 @@
     }
 
     function buildAchievementCard(item) {
-      const achievement = item.fields;
-      const achievementId = item.pk;
+      const achievement = item;
+      const achievementId = item.id;
       const escapedId = escapeHtml(achievementId);
-      const likeUrl = "{% url 'main:toggle_achievement_like' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
+      const likeUrl = "{% url 'api:achievement_like' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
       const editUrl = "{% url 'main:update_achievement' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
-      const deleteUrl = "{% url 'main:delete_achievement' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
+      const deleteUrl = "{% url 'api:achievement_detail' '00000000-0000-0000-0000-000000000000' %}".replace(ACHIEVEMENT_ID_PLACEHOLDER, escapedId);
       const csrfInput = `
         <input
           type="hidden"
@@ -156,8 +156,8 @@
               title="${achievement.is_liked ? "Unlike this item" : "Like this item"}"
             >
               <span aria-hidden="true">&hearts;</span>
-              <span data-like-label>${escapeHtml(achievement.is_liked) ? "Unlike" : "Like"}</span>
-              <span data-like-count class="rounded-full bg-white/25 px-[0.4rem] py-[0.05rem] text-[0.8rem]">${Number(achievement.like_count) || 0}</span>
+              <span data-like-label>${achievement.is_liked ? "Unlike" : "Like"}</span>
+              <span data-like-count class="rounded-full bg-white/25 px-[0.4rem] py-[0.05rem] text-[0.8rem]">${Number(achievement.like_counts) || 0}</span>
             </button>
           </form>
         `
@@ -167,23 +167,23 @@
             title="Login to like this item"
           >
             <span aria-hidden="true">&hearts;</span>
-            ${Number(achievement.like_count) || 0}
-            like${Number(achievement.like_count) === 1 ? "" : "s"}
+            ${Number(achievement.like_counts) || 0}
+            like${Number(achievement.like_counts) === 1 ? "" : "s"}
           </span>
         `;
       const editHtml = CAN_UPDATE
         ? `
           <a href="${editUrl}" class="button button-secondary button-small flex-1">
-            Edit Experience
+            Edit Achievement
           </a>
         `
         : "";
       const deleteHtml = CAN_DELETE
         ? `
-          <form method="post" action="${deleteUrl}" class="flex-1">
+          <form data-delete-form method="post" action="${deleteUrl}" class="flex-1">
             ${csrfInput}
             <button type="submit" class="button button-small w-full">
-              Delete Experience
+              Delete Achievement
             </button>
           </form>
         `
@@ -283,6 +283,30 @@
     });
 
     achievementGrid.addEventListener("submit", async (event) => {
+      const deleteForm = event.target.closest("form[data-delete-form]");
+      if (deleteForm) {
+        event.preventDefault();
+        const button = deleteForm.querySelector("button[type='submit']");
+        button.disabled = true;
+        try {
+          const response = await fetch(deleteForm.action, {
+            method: "DELETE",
+            headers: { Accept: "application/json", "X-CSRFToken": CSRF_TOKEN },
+          });
+          if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.detail || `Delete failed (${response.status}).`);
+          }
+          showToast("Success", "Achievement deleted successfully.", "success");
+          await fetchAchievement(achievementSearchInput.value.trim());
+        } catch (error) {
+          showToast("Delete failed", error.message, "error");
+        } finally {
+          button.disabled = false;
+        }
+        return;
+      }
+
       const likeForm = event.target.closest("form[data-like-form]");
       if (!likeForm) return;
 
@@ -300,12 +324,15 @@
           method: "POST",
           body: new FormData(likeForm),
           headers: {
-            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": CSRF_TOKEN,
             Accept: "application/json",
           },
         });
 
-        if (!response.ok) throw new Error("Failed to update Like status");
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.detail || "Failed to update Like status");
+        }
 
         const result = await response.json();
         likeLabel.textContent = result.is_liked ? "Unlike" : "Like";
@@ -313,7 +340,7 @@
         likeButton.title = result.is_liked ? "Unlike this item" : "Like this item";
         likeButton.classList.toggle("button-dark", !result.is_liked);
       } catch (error) {
-        console.error("Error updating Like status:", error);
+        showToast("Like failed", error.message, "error");
       } finally {
         likeButton.disabled = false;
       }
@@ -334,7 +361,7 @@
       try {
         const response = await fetch(CREATE_ACHIEVEMENT_ENDPOINT, {
           method: "POST",
-          headers: { Accept: "application/json" },
+          headers: { Accept: "application/json", "X-CSRFToken": CSRF_TOKEN },
           body: new FormData(achievementForm),
         });
         const result = await response.json().catch(() => ({}));
@@ -345,17 +372,14 @@
           showToast("Success", "New achievement has been added!", "success");
           fetchAchievement(achievementSearchInput.value.trim());
         } else {
-          const errorMessages = result.errors
-            ? Object.values(result.errors)
-                .flat()
-                .map((error) => error.message)
-            : [
-                result.message ||
-                  `An error occurred (status ${response.status}).`,
-              ];
+          const errorMessages = Object.entries(result).flatMap(([field, errors]) =>
+            (Array.isArray(errors) ? errors : [errors]).map((error) =>
+              `${field === "detail" ? "" : field + ": "}${String(error)}`,
+            ),
+          );
           showToast(
             "Failed to add achievement",
-            errorMessages.join(" "),
+            errorMessages.join(" ") || `Request failed (${response.status}).`,
             "error",
           );
         }

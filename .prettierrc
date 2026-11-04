@@ -1,9 +1,17 @@
 {
+  "tabWidth": 4,
+  "useTabs": false,
   "plugins": ["prettier-plugin-jinja-template", "prettier-plugin-tailwindcss"],
   "tailwindStylesheet": "./static/css/app.css",
   "printWidth": 9999,
   "singleAttributePerLine": false,
   "overrides": [
+    {
+      "files": ["*.html", "*.htm", "*.jinja", "*.jinja2", "*.j2", "*.jsx", "*.tsx", "*.vue", "*.svelte", "*.astro"],
+      "options": {
+        "tabWidth": 2
+      }
+    },
     {
       "files": ["templates/**/*.html"],
       "options": {

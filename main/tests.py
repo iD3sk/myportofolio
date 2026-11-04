@@ -36,8 +36,7 @@ class TestAboutAjax(TestCase):
         self.assertTemplateUsed(response, "about.html")
         self.assertContains(response, education.institution)
         self.assertContains(response, 'id="achievement-grid"')
-        self.assertContains(response, reverse("main:get_achievement_json"))
-        self.assertContains(response, reverse("main:create_achievement_ajax"))
+        self.assertContains(response, reverse("api:achievement_list"))
         self.assertEqual(response.context["title_query"], "contest")
         self.assertNotContains(response, self.achievement.title)
 
