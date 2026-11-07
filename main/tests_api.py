@@ -1,12 +1,13 @@
 import uuid
 
-from django.contrib.auth.models import User
-from django.middleware.csrf import get_token
+from django.contrib.auth.models import Group, User
 from django.test import RequestFactory
+from django.template.loader import render_to_string
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 
-from main.models import Experience
+from main.models import Achievements, Experience
+from main.forms import AchievementForm, ExperienceForm
 
 
 class TestExperienceAPI(APITestCase):
@@ -175,10 +176,12 @@ class TestExperienceAPI(APITestCase):
 
     def test_session_writes_require_valid_csrf_token(self):
         client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.owner)
-        request = RequestFactory().get("/")
-        token = get_token(request)
-        client.cookies["csrftoken"] = request.META["CSRF_COOKIE"]
+        self.owner.set_password("test-password")
+        self.owner.save(update_fields=["password"])
+        self.assertTrue(client.login(username=self.owner.username, password="test-password"))
+        page = client.get(reverse("main:show_experiences"))
+        self.assertEqual(page.status_code, 200)
+        token = client.cookies["csrftoken"].value
 
         for headers in ({}, {"HTTP_X_CSRFTOKEN": "invalid"}):
             with self.subTest(headers=headers):
@@ -191,8 +194,6 @@ class TestExperienceAPI(APITestCase):
         )
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Experience.objects.count(), 2)
-from django.contrib.auth.models import Group
-from main.models import Achievements
 
 
 class TestPortfolioAPIRolesAndLikes(APITestCase):
@@ -218,11 +219,46 @@ class TestPortfolioAPIRolesAndLikes(APITestCase):
             with self.subTest(resource=name):
                 item = model.objects.create(**payload)
                 url = reverse(f"api:{name}_detail", args=[item.pk])
+                before = list(model.objects.order_by("pk").values())
                 self.assertEqual(self.client.post(reverse(f"api:{name}_list"), payload).status_code, 403)
+                self.assertEqual(list(model.objects.order_by("pk").values()), before)
                 self.assertEqual(self.client.patch(url, {"title": "Edited"}).status_code, 200)
+                item.refresh_from_db()
+                self.assertEqual(item.title, "Edited")
                 self.assertEqual(self.client.put(url, payload).status_code, 200)
+                item.refresh_from_db()
+                self.assertEqual(item.title, payload["title"])
+                before = list(model.objects.order_by("pk").values())
                 self.assertEqual(self.client.delete(url).status_code, 403)
-                self.assertTrue(model.objects.filter(pk=item.pk).exists())
+                self.assertEqual(list(model.objects.order_by("pk").values()), before)
+
+    def test_anonymous_and_regular_users_cannot_change_either_resource(self):
+        for name, model, payload in self.resources:
+            item = model.objects.create(**payload)
+            detail_url = reverse(f"api:{name}_detail", args=[item.pk])
+            for user in (None, self.visitor):
+                self.client.force_authenticate(user)
+                for method, url, data in (
+                    ("post", reverse(f"api:{name}_list"), payload),
+                    ("patch", detail_url, {"title": "Not allowed"}),
+                    ("put", detail_url, {**payload, "title": "Not allowed"}),
+                    ("delete", detail_url, {}),
+                ):
+                    with self.subTest(resource=name, user=user, method=method):
+                        before = list(model.objects.order_by("pk").values())
+                        response = getattr(self.client, method)(url, data, format="json")
+                        self.assertEqual(response.status_code, 403)
+                        self.assertEqual(list(model.objects.order_by("pk").values()), before)
+
+    def test_anonymous_users_can_read_each_resource(self):
+        for name, model, payload in self.resources:
+            with self.subTest(resource=name):
+                item = model.objects.create(**payload)
+                response = self.client.get(reverse(f"api:{name}_detail", args=[item.pk]))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.data["id"], str(item.pk))
+                self.assertFalse(response.data["is_liked"])
+                self.assertEqual(self.client.get(reverse(f"api:{name}_list")).status_code, 200)
 
     def test_achievement_crud_search_and_rank_display(self):
         self.client.force_authenticate(self.owner)
@@ -281,10 +317,12 @@ class TestPortfolioAPIRolesAndLikes(APITestCase):
 
     def test_like_session_requires_csrf(self):
         client = APIClient(enforce_csrf_checks=True)
-        client.force_login(self.visitor)
-        request = RequestFactory().get("/")
-        token = get_token(request)
-        client.cookies["csrftoken"] = request.META["CSRF_COOKIE"]
+        self.visitor.set_password("test-password")
+        self.visitor.save(update_fields=["password"])
+        self.assertTrue(client.login(username=self.visitor.username, password="test-password"))
+        page = client.get(reverse("main:show_about"))
+        self.assertEqual(page.status_code, 200)
+        token = client.cookies["csrftoken"].value
         for name, model, payload in self.resources:
             with self.subTest(resource=name):
                 item = model.objects.create(**payload)
@@ -292,3 +330,34 @@ class TestPortfolioAPIRolesAndLikes(APITestCase):
                 self.assertEqual(client.post(url).status_code, 403)
                 self.assertEqual(item.liked_by.count(), 0)
                 self.assertEqual(client.post(url, HTTP_X_CSRFTOKEN=token).status_code, 200)
+                self.assertTrue(item.liked_by.filter(pk=self.visitor.pk).exists())
+
+    def test_create_forms_render_post_to_collection_api(self):
+        for name, form_class in (("experience", ExperienceForm), ("achievement", AchievementForm)):
+            with self.subTest(resource=name):
+                request = RequestFactory().get("/")
+                request.user = self.owner
+                html = render_to_string(
+                    f"{name}_form.html", {"form": form_class(), "name": "Owner"},
+                    request=request,
+                )
+                self.assertIn(f'id="{name}-form"', html)
+                self.assertIn(f'action="{reverse(f"api:{name}_list")}"', html)
+                self.assertIn('data-method="POST"', html)
+                self.assertIn('method: form.dataset.method', html)
+                self.assertIn('"X-CSRFToken"', html)
+                self.assertIn('showToast("Save failed"', html)
+
+    def test_edit_forms_render_patch_for_owner_and_editor(self):
+        for user in (self.owner, self.editor):
+            self.client.force_login(user)
+            for name, model, payload in self.resources:
+                with self.subTest(user=user.username, resource=name):
+                    item = model.objects.create(**payload)
+                    response = self.client.get(reverse(f"main:update_{name}", args=[item.pk]))
+                    self.assertEqual(response.status_code, 200)
+                    self.assertContains(response, f'action="{reverse(f"api:{name}_detail", args=[item.pk])}"')
+                    self.assertContains(response, 'data-method="PATCH"')
+                    self.assertContains(response, f'getElementById("{name}-form")')
+                    self.assertContains(response, 'method: form.dataset.method')
+                    self.assertContains(response, item.title)

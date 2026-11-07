@@ -297,12 +297,16 @@ class TestAbout(TestCase):
 
     def test_achievement_data(self):
         response = self.client.get(reverse("main:show_about"))
-
-        self.assertContains(response, self.gold_achievement.title)
-        self.assertContains(response, self.gold_achievement.organization)
-        self.assertContains(response, self.gold_achievement.description)
-        self.assertContains(response, "Gold")
-        self.assertContains(response, "Bronze")
+        self.assertContains(response, 'id="achievement-grid"')
+        self.assertNotContains(response, self.gold_achievement.title)
+        api_response = self.client.get(reverse("api:achievement_list"))
+        self.assertEqual(api_response.status_code, 200)
+        items = {item["id"]: item for item in api_response.json()}
+        self.assertEqual(items[str(self.gold_achievement.pk)]["title"], self.gold_achievement.title)
+        self.assertEqual(items[str(self.gold_achievement.pk)]["organization"], self.gold_achievement.organization)
+        self.assertEqual(items[str(self.gold_achievement.pk)]["description"], self.gold_achievement.description)
+        self.assertEqual(items[str(self.gold_achievement.pk)]["rank_display"], "Gold")
+        self.assertEqual(items[str(self.bronze_achievement.pk)]["rank_display"], "Bronze")
 
     def test_ongoing_education(self):
         self.assertTrue(self.ui.is_on_going)
@@ -314,7 +318,8 @@ class TestAbout(TestCase):
         response = self.client.get(reverse("main:show_about"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No achievement available")
+        self.assertContains(response, 'id="achievement-empty"')
+        self.assertEqual(self.client.get(reverse("api:achievement_list")).json(), [])
 
     def test_about_page_with_empty_database(self):
         Educations.objects.all().delete()
@@ -323,7 +328,8 @@ class TestAbout(TestCase):
         response = self.client.get(reverse("main:show_about"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No achievement available")
+        self.assertContains(response, 'id="achievement-empty"')
+        self.assertEqual(self.client.get(reverse("api:achievement_list")).json(), [])
 
 
 class TestAchievementManagement(TestCase):
@@ -349,40 +355,33 @@ class TestAchievementManagement(TestCase):
             "description": "Placed second in the final.",
         }
 
-    def test_create_achievement_page_displays_form(self):
-        response = self.client.get(reverse("main:create_achievement"))
-
+    def test_create_achievement_modal_displays_form(self):
+        response = self.client.get(reverse("main:show_about"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "achievement_form.html")
-        self.assertContains(response, "Add Achievement")
+        self.assertContains(response, 'id="add-achievement-modal"')
         self.assertContains(response, 'name="title"')
         self.assertContains(response, 'name="rank"')
+        self.assertContains(response, reverse("api:achievement_list"))
 
     def test_create_achievement_with_valid_data(self):
-        response = self.client.post(reverse("main:create_achievement"), self.valid_data)
-
-        self.assertRedirects(response, reverse("main:show_about"))
-        created_achievement = Achievements.objects.get(title=self.valid_data["title"])
+        response = self.client.post(reverse("api:achievement_list"), self.valid_data)
+        self.assertEqual(response.status_code, 201)
+        created_achievement = Achievements.objects.get(pk=response.json()["id"])
+        self.assertEqual(created_achievement.title, self.valid_data["title"])
         self.assertEqual(created_achievement.year, self.valid_data["year"])
         self.assertEqual(created_achievement.rank, self.valid_data["rank"])
         self.assertEqual(created_achievement.org_logo, self.valid_data["org_logo"])
 
     def test_create_achievement_with_invalid_data_shows_errors(self):
-        invalid_data = self.valid_data | {"title": "", "year": "not-a-year"}
-
-        response = self.client.post(reverse("main:create_achievement"), invalid_data)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "achievement_form.html")
-        self.assertFormError(
-            response.context["form"], "title", "This field is required."
+        before = list(Achievements.objects.values())
+        response = self.client.post(
+            reverse("api:achievement_list"),
+            self.valid_data | {"title": "", "year": "not-a-year"},
         )
-        self.assertFormError(response.context["form"], "year", "Enter a whole number.")
-        self.assertFalse(
-            Achievements.objects.filter(
-                organization=self.valid_data["organization"]
-            ).exists()
-        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("title", response.json())
+        self.assertIn("year", response.json())
+        self.assertEqual(list(Achievements.objects.values()), before)
 
     def test_update_achievement_page_prefills_existing_data(self):
         response = self.client.get(
@@ -453,22 +452,17 @@ class TestAchievementManagement(TestCase):
         self.assertEqual(delete_response.status_code, 404)
 
     def test_about_page_filters_achievements_by_title_case_insensitively(self):
-        matching_achievement = Achievements.objects.create(
-            title="Regional Science Olympiad",
-            organization="Science Organizer",
-            year=2024,
-            rank=Achievements.Rank.FINALIST,
+        matching = Achievements.objects.create(
+            title="Regional Science Olympiad", organization="Science Organizer",
+            year=2024, rank=Achievements.Rank.FINALIST,
         )
-
         response = self.client.get(reverse("main:show_about"), {"title": "science"})
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["title_query"], "science")
-        self.assertQuerySetEqual(
-            response.context["achievement_list"], [matching_achievement]
-        )
-        self.assertContains(response, matching_achievement.title)
-        self.assertNotContains(response, self.achievement.title)
+        self.assertNotContains(response, matching.title)
+        api_response = self.client.get(reverse("api:achievement_list"), {"title": "SCIENCE"})
+        self.assertEqual(api_response.status_code, 200)
+        self.assertEqual([item["id"] for item in api_response.json()], [str(matching.pk)])
 
     def test_achievement_json_filters_and_orders_newest_first(self):
         older_achievement = Achievements.objects.create(
@@ -527,7 +521,6 @@ class TestAuthorizationAndLikes(TestCase):
             ("get", reverse("main:update_experience", args=[self.experience.id])),
             ("post", reverse("main:delete_experience", args=[self.experience.id])),
             ("post", reverse("main:toggle_experience_like", args=[self.experience.id])),
-            ("get", reverse("main:create_achievement")),
             ("get", reverse("main:update_achievement", args=[self.achievement.id])),
             ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
             (
@@ -548,7 +541,6 @@ class TestAuthorizationAndLikes(TestCase):
             ("get", reverse("main:create_experience")),
             ("get", reverse("main:update_experience", args=[self.experience.id])),
             ("post", reverse("main:delete_experience", args=[self.experience.id])),
-            ("get", reverse("main:create_achievement")),
             ("get", reverse("main:update_achievement", args=[self.achievement.id])),
             ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
         ]
@@ -596,7 +588,6 @@ class TestAuthorizationAndLikes(TestCase):
         forbidden_requests = [
             ("get", reverse("main:create_experience")),
             ("post", reverse("main:delete_experience", args=[self.experience.id])),
-            ("get", reverse("main:create_achievement")),
             ("post", reverse("main:delete_achievement", args=[self.achievement.id])),
         ]
         for method, url in forbidden_requests:
@@ -617,7 +608,7 @@ class TestAuthorizationAndLikes(TestCase):
             200,
         )
         self.assertEqual(
-            self.client.get(reverse("main:create_achievement")).status_code, 200
+            self.client.get(reverse("main:show_about")).status_code, 200
         )
         self.assertEqual(
             self.client.get(
@@ -720,31 +711,26 @@ class TestAuthorizationAndLikes(TestCase):
                     self.assertNotContains(response, 'id="add-experience-modal"')
 
     def test_about_page_action_controls_match_each_role(self):
-        urls = {
-            "create": reverse("main:create_achievement"),
-            "edit": reverse("main:update_achievement", args=[self.achievement.id]),
-            "delete": reverse("main:delete_achievement", args=[self.achievement.id]),
-            "like": reverse("main:toggle_achievement_like", args=[self.achievement.id]),
-        }
-
-        response = self.client.get(reverse("main:show_about"))
-        self.assertContains(response, "0 likes")
-        for action_url in urls.values():
-            self.assertNotContains(response, action_url)
-
-        for user, visible, hidden in [
-            (self.regular, ("like",), ("create", "edit", "delete")),
-            (self.editor, ("like", "edit"), ("create", "delete")),
-            (self.owner, tuple(urls), ()),
+        for user, authenticated, can_update, can_delete in [
+            (None, False, False, False),
+            (self.regular, True, False, False),
+            (self.editor, True, True, False),
+            (self.owner, True, True, True),
         ]:
             with self.subTest(user=user):
-                self.client.force_login(user)
+                if user is None:
+                    self.client.logout()
+                else:
+                    self.client.force_login(user)
                 response = self.client.get(reverse("main:show_about"))
-                for action in visible:
-                    self.assertContains(response, urls[action])
-                for action in hidden:
-                    self.assertNotContains(response, urls[action])
-                self.client.logout()
+                self.assertEqual(response.status_code, 200)
+                for name, allowed in (("IS_AUTHENTICATED", authenticated),
+                                      ("CAN_UPDATE", can_update), ("CAN_DELETE", can_delete)):
+                    self.assertContains(response, f'const {name} = "{str(allowed).lower()}"')
+                if can_delete:
+                    self.assertContains(response, 'id="add-achievement-modal"')
+                else:
+                    self.assertNotContains(response, 'id="add-achievement-modal"')
 
     def test_json_exposes_like_state_without_internal_user_ids(self):
         self.experience.liked_by.add(self.regular)
