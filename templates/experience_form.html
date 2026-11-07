@@ -5,7 +5,12 @@
     <div class="mx-auto max-w-3xl">
       <h1 class="mt-4 font-display text-[clamp(2.5rem,6vw,4.5rem)] leading-none font-bold">{% if experience %}Edit{% else %}Add{% endif %} Experience</h1>
 
-      <form method="post" action="{% if experience %}{% url 'main:update_experience' experience.id %}{% else %}{% url 'main:create_experience' %}{% endif %}" class="mt-10 space-y-6">
+      <form
+        id="experience-form"
+        action="{% if experience %}{% url 'api:experience_detail' experience.id %}{% else %}{% url 'api:experience_list' %}{% endif %}"
+        data-method="{% if experience %}PATCH{% else %}POST{% endif %}"
+        class="mt-10 space-y-6"
+      >
         {% csrf_token %}
         {% for field in form %}
           <div>
@@ -28,4 +33,44 @@
       </form>
     </div>
   </section>
+
+  <script>
+    const form = document.getElementById("experience-form");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = form.querySelector("button[type='submit']");
+      if (submitButton.disabled) return;
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch(form.action, {
+          method: form.dataset.method,
+          headers: {
+            Accept: "application/json",
+            "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value,
+          },
+          body: new FormData(form),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const message = Object.entries(result)
+            .map(([field, errors]) =>
+              `${field === "detail" ? "" : field + ": "}${[].concat(errors).join(", ")}`,
+            )
+            .join(" ");
+          throw new Error(message || `Request failed (${response.status}).`);
+        }
+
+        const action = form.dataset.method === "POST" ? "created" : "updated";
+        showToast("Success", `Experience ${action} successfully.`, "success");
+        if (form.dataset.method === "POST") form.reset();
+      } catch (error) {
+        showToast("Save failed", error.message, "error");
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
 {% endblock content %}
