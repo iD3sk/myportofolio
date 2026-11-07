@@ -346,3 +346,41 @@ Referensi log chat:
 ```bash
 https://chatgpt.com/s/cx_6ac224c957348191a6e5e3eb86ced055
 ```
+
+
+<br>
+<br>
+<br>
+<br>
+
+### Tugas 6
+
+Pada minggu ini aku menggunakan Django REST Framework untuk API Experience dan Achievement. Data ditampilkan dan disimpan melalui serializer, sedangkan akses pengguna diperiksa melalui permission class. Form tambah dan edit mengirim data dengan `fetch()` ke API.
+
+1. REST (*Representational State Transfer*) adalah gaya arsitektur untuk komunikasi client dan server. Data diperlakukan sebagai resource yang memiliki URL, seperti `/api/v1/achievements/` untuk daftar achievement dan `/api/v1/achievements/<id>/` untuk satu achievement. Tindakan terhadap resource mengikuti makna HTTP method, misalnya GET untuk membaca dan DELETE untuk menghapus. Mengembalikan JSON saja belum cukup karena JSON hanya format data. REST juga memiliki batasan seperti pemisahan client-server, komunikasi stateless, aturan caching, dan antarmuka yang konsisten. Stateless berarti setiap request membawa informasi yang dibutuhkan tanpa bergantung pada konteks percakapan yang disimpan server. API proyekku memakai session di server sehingga tidak sepenuhnya mengikuti batasan stateless REST. `PUT` digunakan untuk mengganti representasi resource secara keseluruhan, misalnya mengirim seluruh field yang dapat diubah ketika mengganti data achievement. `PATCH` digunakan untuk perubahan sebagian, misalnya hanya mengubah `title` tanpa mengirim ulang `year`, `organization`, dan `rank`. [Referensi REST](https://developer.mozilla.org/en-US/docs/Glossary/REST), [PUT](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PUT), dan [PATCH](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH).
+
+2. Serializer mengubah objek model menjadi tipe data Python yang dapat dirender sebagai JSON, serta memvalidasi input sebelum membuat atau memperbarui objek. Pada GET, aku memakai `serializer.data` untuk respons. Pada POST atau PATCH, aku memberikan `data=request.data`, menjalankan `is_valid()`, lalu `save()` untuk menyimpan objek. `ModelSerializer` mengambil sebagian aturan field dari model, seperti tipe, panjang maksimal, dan pilihan nilai, sehingga tidak semuanya perlu ditulis ulang. Dibandingkan merakit dictionary sendiri dengan `JsonResponse`, serializer memusatkan pemilihan field, validasi, dan representasi data pada satu tempat. Field seperti jumlah like dan status like pengguna juga dapat dibuat read-only agar tidak dapat diubah lewat input. View menjadi lebih singkat dan format data dapat digunakan kembali pada endpoint daftar maupun detail. [Referensi serializer DRF](https://www.django-rest-framework.org/api-guide/serializers/).
+
+3. Autentikasi memeriksa siapa pengguna yang mengirim request. Pada proyek ini, `SessionAuthentication` mengenali akun melalui session Django dan mengisi `request.user`. Otorisasi memeriksa apakah pengguna tersebut boleh melakukan tindakan tertentu. Pengguna biasa yang sudah terautentikasi boleh memberi like, tetapi belum tentu boleh mengubah achievement. Permission class membatasi pengguna biasa, Editor, dan superuser sesuai haknya: Editor boleh update, sedangkan create dan delete hanya untuk superuser. Pemeriksaan ini harus dilakukan di server karena tombol yang disembunyikan hanya membatasi tampilan. Pengguna tetap dapat mengirim request langsung melalui browser, script, atau aplikasi lain. Jika server tidak memeriksa permission, request itu bisa mengubah data meskipun tombolnya tidak terlihat. [Referensi permission DRF](https://www.django-rest-framework.org/api-guide/permissions/).
+
+4. Pada `SessionAuthentication`, browser dapat menyertakan cookie session secara otomatis. Karena itu, server perlu membedakan request perubahan data yang sah dari request yang dipicu situs lain dengan memanfaatkan session pengguna. Token CSRF memberi pemeriksaan tambahan tersebut; frontend mengirimkannya melalui header `X-CSRFToken` saat POST, PUT, PATCH, atau DELETE. Login saja tidak menggantikan pemeriksaan CSRF. Untuk pengguna yang terautentikasi melalui session, DRF menolak request perubahan data jika tokennya hilang atau tidak valid. `force_authenticate` langsung menetapkan pengguna pada request dan melewati proses autentikasi normal, sehingga test tersebut tidak membuktikan bahwa pemeriksaan CSRF pada `SessionAuthentication` berjalan. Aku perlu memakai `APIClient(enforce_csrf_checks=True)` dan `.login()` dengan akun uji, lalu memastikan request tanpa token ditolak dengan 403 dan database tidak berubah. Request yang sama dengan token valid juga perlu diuji agar jelas bahwa penolakannya memang disebabkan CSRF. [Referensi SessionAuthentication](https://www.django-rest-framework.org/api-guide/authentication/#sessionauthentication) dan [pengujian DRF](https://www.django-rest-framework.org/api-guide/testing/#csrf-validation).
+
+## AI Disclosure
+
+### Overview
+
+Aku menggunakan Codex untuk memahami serializer, permission, HTTP method, dan CSRF, serta membantu implementasi API, integrasi AJAX, pengujian, dan penyusunan jawaban reflektif ini.
+
+### Strategi Prompting
+
+Aku memberikan potongan kode dan menanyakan bagian yang belum kupahami secara bertahap. Setelah itu, aku memberikan tautan tutorial dan tugas untuk membandingkan implementasi dengan checklist yang diminta.
+
+### Keterbatasan AI
+
+AI sempat memperluas scope ke Achievement sebelum membedakan cakupan tutorial dan tugas dengan jelas. Test server dan pemeriksaan script juga belum membuktikan seluruh interaksi berjalan di browser, sehingga hasilnya tidak bisa langsung dianggap sebagai verifikasi end-to-end.
+
+### Perbaikan Manual
+
+Aku memperbaiki form Achievement dan meminta pemeriksaan ulang karena masih ada kesalahan nama URL serta context untuk menentukan POST atau PATCH. Implementasi kemudian disesuaikan agar form Experience dan Achievement mengirim data ke endpoint API yang sesuai.
+
+Referensi log chat: `https://chatgpt.com/s/cx_6aefa7a3d0cc819194692c79cd782482` 
